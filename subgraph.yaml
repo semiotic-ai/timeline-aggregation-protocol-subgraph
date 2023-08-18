@@ -1,0 +1,43 @@
+specVersion: 0.0.4
+description: TAP Protocol allows senders to deposit escrow for specific recievers
+repository: https://github.com/semiotic-ai/timeline-aggregation-protocol-contracts
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Escrow
+    network: mainnet
+    source:
+      address: '0xE8e43b5D61C43375aB7b651F1419F2a81C5E6615'
+      abi: Escrow
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/escrow.ts
+      entities:
+        - Escrow
+      abis:
+        - name: Escrow
+          file: ./abis/escrow.abi.json
+        - name: ERC20
+          file: ./abis/ERC20.abi.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: Deposit(indexed address,indexed address,uint256)
+          handler: handleDeposit
+        - event: Redeem(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleRedeems
+        - event: Withdraw(indexed address,indexed address,uint256)
+          handler: handleWidthrawals
+        - event: Thaw(indexed address,indexed address,uint256,uint256,uint256)
+          handler: handleThaw
+        - event: AuthorizeSigner(indexed address,indexed address)
+          handler: handleSignerAuthorization
+        - event: RevokeAuthorizedSigner(indexed address,indexed address)
+          handler: handleRevokeSignerAuthorization
+        
