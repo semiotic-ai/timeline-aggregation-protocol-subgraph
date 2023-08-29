@@ -1,5 +1,22 @@
 build/
-node_modules/
 src/types/
 .DS_STORE
 yarn-error.log
+
+# Compiler files
+cache/
+out/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Dotenv file
+.env
+
+node_modules
+
+# Lock files
+package-lock.json
+yarn.lock

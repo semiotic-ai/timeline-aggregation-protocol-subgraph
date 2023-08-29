@@ -8,25 +8,19 @@ dataSources:
     name: Escrow
     network: mainnet
     source:
-      address: '0xE8e43b5D61C43375aB7b651F1419F2a81C5E6615'
+      address: '0xfdfad30ae5e5c9Dc4fb51aC35AB60674FcBdefB3'
       abi: Escrow
       startBlock: 0
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/mappings/escrow.ts
+      file: ./src/mappings/Escrow.ts
       entities:
         - Escrow
       abis:
         - name: Escrow
-          file: ./abis/escrow.abi.json
-        - name: ERC20
-          file: ./abis/ERC20.abi.json
-        - name: ERC20SymbolBytes
-          file: ./abis/ERC20SymbolBytes.json
-        - name: ERC20NameBytes
-          file: ./abis/ERC20NameBytes.json
+          file: ./abis/Escrow.abi.json
       eventHandlers:
         - event: Deposit(indexed address,indexed address,uint256)
           handler: handleDeposit
