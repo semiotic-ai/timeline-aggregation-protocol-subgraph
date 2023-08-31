@@ -1,0 +1,6 @@
+[submodule "timeline-aggregation-protocol-contracts"]
+	path = timeline-aggregation-protocol-contracts
+	url = git@github.com:semiotic-ai/timeline-aggregation-protocol-contracts.git
+[submodule "contracts"]
+	path = contracts
+	url = git@github.com:graphprotocol/contracts.git
