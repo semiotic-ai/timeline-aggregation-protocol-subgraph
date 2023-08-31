@@ -24,3 +24,4 @@ yarn.lock
 #tests
 tests/data/ipfs/
 tests/data/postgres/
+tests/__pycache__/
