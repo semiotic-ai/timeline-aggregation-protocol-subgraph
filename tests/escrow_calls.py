@@ -33,7 +33,7 @@ rav_digest = encode_defunct(signable_bytes)
 rav_signature = obtain_final_signature(SIGNER_PK, signable_bytes)
 
 # Normal proof
-message_hash = Web3.solidity_keccak(['uint64', 'address', 'address', 'address'], [1337, GATEWAY, ALLOCATION_ID, ESCROW_ADDRESS])
+message_hash = Web3.solidity_keccak(['uint256', 'address', 'address', 'address'], [1337, GATEWAY, ALLOCATION_ID, ESCROW_ADDRESS])
 #message_hash = Web3.solidity_keccak(['address', 'address', 'address'], [GATEWAY, ALLOCATION_ID, ESCROW_ADDRESS])
 allocation_id_digest = encode_defunct(message_hash)
 signature_proof = w3.eth.account.sign_message(allocation_id_digest, private_key=ALLOCATIONID_PK)
@@ -45,7 +45,7 @@ signedRAV = (rav, rav_signature)
 print("RAV SIGNATURE", rav_signature.hex())
 timer = int(time.time()) + 86400
 #Authorization
-hashed_data = Web3.solidity_keccak(['uint64', 'uint256', 'address'], [1337, timer, GATEWAY])
+hashed_data = Web3.solidity_keccak(['uint256', 'uint256', 'address'], [1337, timer, GATEWAY])
 #bytes_sender = Web3.to_bytes(hexstr=GATEWAY)
 #hashed_data = Web3.keccak(bytes_sender)
 encode_data =encode_defunct(hashed_data)
@@ -57,7 +57,7 @@ escrow_abi_json = json.load(escrow_abi)
 escrow = w3.eth.contract(address=ESCROW_ADDRESS, abi=escrow_abi_json)
 
 try:
-    """print("Starting with deposits")
+    print("Starting with deposits")
     escrow.functions.deposit(RECEIVER, 15).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     escrow.functions.deposit(RECEIVER, 33).transact({"from":SIGNER, "to": ESCROW_ADDRESS})
     escrow.functions.deposit(SIGNER, 44).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
@@ -67,9 +67,9 @@ try:
     print("Trying to withdraw")
     escrow.functions.withdraw(SIGNER).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     print("Approving")
-    escrow.functions.approveAll().transact({"from":GATEWAY, "to": ESCROW_ADDRESS})"""
+    escrow.functions.approveAll().transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     print("Approving signer")
-    escrow.functions.authorizeSigner(SIGNER, signature_authorization.signature).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
+    escrow.functions.authorizeSigner(SIGNER, timer, signature_authorization.signature).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     print("Executing deposit for redeem")
     escrow.functions.deposit(RECEIVER, 12).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     print("Executing redeem")
