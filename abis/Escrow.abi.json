@@ -74,6 +74,11 @@
   },
   {
     "inputs": [],
+    "name": "InsufficientThawAmount",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidRAVSigner",
     "type": "error"
   },
@@ -96,6 +101,11 @@
       }
     ],
     "name": "SignerAlreadyAuthorized",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "SignerNotAuthorized",
     "type": "error"
   },
   {
@@ -152,6 +162,50 @@
       }
     ],
     "name": "AuthorizeSigner",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      }
+    ],
+    "name": "CancelThaw",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "authorizedSigner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "thawEndTimestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "CancelThawSigner",
     "type": "event"
   },
   {
@@ -350,6 +404,11 @@
         "type": "address"
       },
       {
+        "internalType": "uint256",
+        "name": "proofDeadline",
+        "type": "uint256"
+      },
+      {
         "internalType": "bytes",
         "name": "proof",
         "type": "bytes"
@@ -388,6 +447,19 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
+    ],
+    "name": "cancelThawSigner",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "receiver",
         "type": "address"
       },
@@ -411,7 +483,7 @@
       },
       {
         "internalType": "address",
-        "name": "reciever",
+        "name": "receiver",
         "type": "address"
       }
     ],
@@ -536,7 +608,7 @@
                 "type": "uint128"
               }
             ],
-            "internalType": "struct TAPVerifier.ReceiptAggregationVoucher",
+            "internalType": "struct TAPVerifier.ReceiptAggregateVoucher",
             "name": "rav",
             "type": "tuple"
           },
