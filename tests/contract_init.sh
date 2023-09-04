@@ -16,10 +16,6 @@ echo "Obtaining Graph address token"
 GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
 echo "GRAPH TOKEN = $GRAPH_TOKEN"
 
-cd $current_dir
-echo "Obtaining Graph Node address token"
-GRAPH_TOKEN=$(python obtain_address.py "$FULL_CMD_LOG")
-
 command cd $current_dir/../timeline-aggregation-protocol-contracts
 command yarn
 command forge install
