@@ -8,7 +8,7 @@ dataSources:
     name: Escrow
     network: mainnet
     source:
-      address: '0xfdfad30ae5e5c9Dc4fb51aC35AB60674FcBdefB3'
+      address: '0xdF360a6AA07Bd2B110B3C36A8DAD5a232ecc7E12'
       abi: Escrow
       startBlock: 0
     mapping:
@@ -20,7 +20,7 @@ dataSources:
         - Escrow
       abis:
         - name: Escrow
-          file: ./abis/Escrow.abi.json
+          file: ./abis/escrow.abi.json
       eventHandlers:
         - event: Deposit(indexed address,indexed address,uint256)
           handler: handleDeposit
