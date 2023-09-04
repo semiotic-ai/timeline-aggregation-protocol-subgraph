@@ -36,20 +36,18 @@ rav_signature = obtain_final_signature(SIGNER_PK, signable_bytes)
 
 # Normal proof
 message_hash = Web3.solidity_keccak(['uint256', 'address', 'address', 'address'], [1337, GATEWAY, ALLOCATION_ID, ESCROW_ADDRESS])
-#message_hash = Web3.solidity_keccak(['address', 'address', 'address'], [GATEWAY, ALLOCATION_ID, ESCROW_ADDRESS])
 allocation_id_digest = encode_defunct(message_hash)
 signature_proof = w3.eth.account.sign_message(allocation_id_digest, private_key=ALLOCATIONID_PK)
-print("SIGNATURE PROOOF: ", signature_proof.signature.hex())
+#print("SIGNATURE PROOOF: ", signature_proof.signature.hex())
 
 # RAV
 rav = (ALLOCATION_ID, 1691694025, 5)
 signedRAV = (rav, rav_signature)
-print("RAV SIGNATURE", rav_signature.hex())
+#print("RAV SIGNATURE", rav_signature.hex())
 timer = int(time.time()) + 86400
+
 #Authorization
 hashed_data = Web3.solidity_keccak(['uint256', 'uint256', 'address'], [1337, timer, GATEWAY])
-#bytes_sender = Web3.to_bytes(hexstr=GATEWAY)
-#hashed_data = Web3.keccak(bytes_sender)
 encode_data =encode_defunct(hashed_data)
 signature_authorization = w3.eth.account.sign_message(encode_data, private_key=SIGNER_PK)
 
