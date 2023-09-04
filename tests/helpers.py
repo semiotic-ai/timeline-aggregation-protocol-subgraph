@@ -5,8 +5,8 @@ from eth_utils.abi import function_abi_to_4byte_selector, collapse_if_tuple
 import sha3
 
 #CHANGE THIS ADDRESS WITH THE DEPLOYED ONE
-ESCROW_ADDRESS = '0xfdfad30ae5e5c9Dc4fb51aC35AB60674FcBdefB3'
-TAP_ADDRESS = '0x6e7Da71eF6E0Aaa85E59554C1FAe44128fA649Ed'
+ESCROW_ADDRESS = '0x94dFeceb91678ec912ef8f14c72721c102ed2Df7'
+TAP_ADDRESS = '0x995629b19667Ae71483DC812c1B5a35fCaaAF4B8'
 
 GATEWAY = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 GATEWAY_PK = '4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -27,6 +27,12 @@ class ReceiptAggregateVoucher(EIP712Struct):
     timestampNs = Uint(64)
     valueAggregate = Uint(128)
 
+def time_remaining(error):
+    timestamps = error.replace(')','').split('(')[1].split(',')
+    time_a = int(timestamps[0])
+    time_b = int(timestamps[1])
+    time_left = time_b - time_a
+    return time_left
 
 def decode_custom_error(contract_abi, error_data, w3):
     for error in [abi for abi in contract_abi if abi["type"] == "error"]:

@@ -6,11 +6,13 @@ from web3.exceptions import ContractCustomError, ContractLogicError
 import json
 from eth_account.messages import encode_defunct
 import time
-from helpers import ReceiptAggregateVoucher, decode_custom_error, obtain_final_signature
-from helpers import GATEWAY, ALLOCATION_ID, ALLOCATIONID_PK, SIGNER, SIGNER_PK, RECEIVER, ESCROW_ADDRESS, TAP_ADDRESS
+from helpers import ReceiptAggregateVoucher, decode_custom_error, obtain_final_signature, time_remaining
+from helpers import GATEWAY, ALLOCATION_ID, ALLOCATIONID_PK, SIGNER, SIGNER_PK, RECEIVER
+import sys
 
 # This script will help test that the subgraph is actually catching the required information
-
+ESCROW_ADDRESS = sys.argv[1]
+TAP_ADDRESS = sys.argv[2]
 
 my_domain = make_domain(name='tapVerifier',
     version='1.0',
@@ -63,13 +65,31 @@ try:
     escrow.functions.deposit(SIGNER, 44).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     print("Start thawing")
     escrow.functions.thaw(SIGNER, 10).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
-    time.sleep(30)
-    print("Trying to withdraw")
-    escrow.functions.withdraw(SIGNER).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
+    thawing = True
+    while(thawing):
+        try:
+            print("Trying to withdraw")
+            escrow.functions.withdraw(SIGNER).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
+            thawing = False
+        except ContractCustomError as e:
+            error = decode_custom_error(escrow_abi_json,str(e),w3)
+            if("EscrowStillThawing" in error):
+                time_left = time_remaining(error)
+                print(f"Escrow still thawing, time left: {time_left}")
+                time.sleep(time_left + 1)
     print("Approving")
     escrow.functions.approveAll().transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     print("Approving signer")
-    escrow.functions.authorizeSigner(SIGNER, timer, signature_authorization.signature).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
+    try:
+        escrow.functions.authorizeSigner(
+            SIGNER, timer, signature_authorization.signature
+        ).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
+    except ContractCustomError as e:
+        error = decode_custom_error(escrow_abi_json,str(e),w3)
+        if("SignerAlreadyAuthorized" in error):
+            print("Skip, signer already authorized")
+        else:
+            print(error)
     print("Executing deposit for redeem")
     escrow.functions.deposit(RECEIVER, 12).transact({"from":GATEWAY, "to": ESCROW_ADDRESS})
     print("Executing redeem")
