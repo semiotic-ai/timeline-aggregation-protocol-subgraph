@@ -1,0 +1,7 @@
+contracts @ git+https://github.com/graphprotocol/contracts.git
+timeline-aggregation-protocol-contracts  @ git+https://github.com/semiotic-ai/timeline-aggregation-protocol-contracts.git
+coincurve==18.0.0
+eip712-structs==1.1.0
+eth-account==0.8.0
+eth-utils==2.2.0
+web3==6.8.0
