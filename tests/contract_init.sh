@@ -14,12 +14,13 @@ echo "Running node contract deploy"
 FULL_CMD_LOG="$(yes | yarn deploy-localhost --auto-mine)"
 echo "Obtaining Graph address token"
 GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
-echo "GRAPH TOKEN = $GRAPH_TOKEN"
+
 
 command cd $current_dir/timeline-aggregation-protocol-contracts
 command yarn
 command forge install
 command forge update
+echo "Graph token address: $GRAPH_TOKEN"
 echo "Step 2: Obtain allocation tracker address"
 ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/AllocationIDTracker.sol:AllocationIDTracker --json)
 ALLOCATION_TRACKER_AD=$(echo $ALLOCATION_VAR | jq -r '.deployedTo')
@@ -40,18 +41,9 @@ ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 sr
 ESCROW_AD=$(echo $ESCROW_VAR | jq -r '.deployedTo')
 echo "Escrow address: $ESCROW_AD"
 
-echo "Approving escrow contract"
-cast send --unlocked --from $GATEWAY $GRAPH_TOKEN 'approve(address spender, uint256 amount)' $ESCROW_AD '10000'
-cast send --unlocked --from $SIGNER $GRAPH_TOKEN 'approve(address spender, uint256 amount)' $ESCROW_AD '10000'
-cast send --unlocked --from $GATEWAY $GRAPH_TOKEN 'setAssetHolder(address, bool)' $ESCROW_AD true
-# Making sure other accounts have money
-cast send --unlocked --from $GATEWAY $GRAPH_TOKEN 'transfer(address to, uint256 amount)' $SIGNER 500
-cast send --unlocked --from $GATEWAY $GRAPH_TOKEN 'transfer(address to, uint256 amount)' $RECEIVER 500
-echo "Run commands to deploy subgraph, make sure to use the Escrow Address $ESCROW_AD in the subgraph.yaml"
-echo "Inside /tests/utils.py change ESCROW_CONTRACT with $ESCROW_AD"
-
 cd $current_dir
 
 echo "Running escrow contract calls"
-python escrow_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD"
+python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN"
 
+echo "Run commands to deploy subgraph, make sure to use the Escrow Address $ESCROW_AD in the subgraph.yaml"

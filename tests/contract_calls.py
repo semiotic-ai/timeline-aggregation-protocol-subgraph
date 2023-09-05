@@ -13,6 +13,7 @@ import sys
 # This script will help test that the subgraph is actually catching the required information
 ESCROW_ADDRESS = sys.argv[1]
 TAP_ADDRESS = sys.argv[2]
+GRAPH_TOKEN = sys.argv[3]
 
 my_domain = make_domain(name='tapVerifier',
     version='1.0',
@@ -55,6 +56,23 @@ signature_authorization = w3.eth.account.sign_message(encode_data, private_key=S
 escrow_abi = open('../abis/Escrow.abi.json')
 escrow_abi_json = json.load(escrow_abi)
 escrow = w3.eth.contract(address=ESCROW_ADDRESS, abi=escrow_abi_json)
+
+erc20_abi = open('../abis/ERC20.abi.json')
+erc20_abi_json = json.load(erc20_abi)
+erc20 = w3.eth.contract(address=GRAPH_TOKEN, abi=erc20_abi_json)
+
+try:
+    print("Approving escrow contracts")
+    erc20.functions.approve(ESCROW_ADDRESS, 10000).transact({"from":GATEWAY, "to": GRAPH_TOKEN})
+    erc20.functions.approve(ESCROW_ADDRESS, 10000).transact({"from":SIGNER, "to": GRAPH_TOKEN})
+    print("Making sure all addresses have available founds")
+    erc20.functions.transfer(SIGNER, 500).transact({"from":GATEWAY, "to": GRAPH_TOKEN})
+    erc20.functions.transfer(RECEIVER, 500).transact({"from":GATEWAY, "to": GRAPH_TOKEN})
+except ContractCustomError as e:
+    print ('Custom Error: %s' % e)
+    print (decode_custom_error(erc20_abi_json,str(e),w3))
+except ContractLogicError as e:
+    print ('Logic Error: %s' % e)   
 
 try:
     print("Starting with deposits")
