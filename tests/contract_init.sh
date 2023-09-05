@@ -8,7 +8,7 @@ RECEIVER=0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b
 current_dir=$(pwd)
 
 echo "Step 1: Run graph contracts"
-cd $current_dir/../contracts
+cd $current_dir/contracts
 yarn
 echo "Running node contract deploy"
 FULL_CMD_LOG="$(yes | yarn deploy-localhost --auto-mine)"
@@ -16,7 +16,7 @@ echo "Obtaining Graph address token"
 GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
 echo "GRAPH TOKEN = $GRAPH_TOKEN"
 
-command cd $current_dir/../timeline-aggregation-protocol-contracts
+command cd $current_dir/timeline-aggregation-protocol-contracts
 command yarn
 command forge install
 command forge update
