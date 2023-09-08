@@ -1,0 +1,43 @@
+type EscrowAccount @entity{
+    # Thaw transaction hash is used as ID
+    id: ID!
+    sender: Sender!
+    receiver: Receiver!
+    balance: BigDecimal!
+    totalAmountThawing: BigDecimal!
+    thawEndTimestamp: BigInt!
+    transactions: [Transaction!] @derivedFrom(field: "escrowAccount") 
+}
+
+type Sender @entity {
+  # sender address
+  id: ID!
+  # Sender Escrow
+  escrowAccounts: [EscrowAccount!] @derivedFrom(field: "sender")
+  transactions: [Transaction!] @derivedFrom(field: "sender")
+  authorizedSigners: [AuthorizedSigner!] @derivedFrom(field: "sender")
+}
+
+type Receiver @entity {
+  # receiver address
+  id: ID!
+  escrowAccounts: [EscrowAccount!] @derivedFrom(field: "receiver")
+  transactions: [Transaction!] @derivedFrom(field: "receiver")
+}
+
+type Transaction @entity{
+  id: ID!
+  type: String!
+  sender: Sender!
+  receiver: Receiver!
+  allocationID: String
+  expectedAmount: BigDecimal
+  amount: BigDecimal!
+  escrowAccount: EscrowAccount!
+}
+
+type AuthorizedSigner @entity{
+  id: ID!
+  is_authorized: Boolean
+  sender: Sender!
+}
