@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
+import { BigInt } from '@graphprotocol/graph-ts'
 import {
     Transaction,
     Sender,
@@ -8,7 +8,6 @@ import {
     AuthorizedSigner
 } from '../types/schema'
 import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner} from '../types/Escrow/Escrow'
-let ZERO_BD = BigDecimal.fromString('0')
 let ZERO_BI = BigInt.fromI32(0)
 
 export function handleThaw(event: Thaw): void {
@@ -26,8 +25,8 @@ export function handleThaw(event: Thaw): void {
     receiver.save()
     // EscrowAccounts are created at deposit otherwise thaw cant be called
     if (escrow != null){
-        escrow.totalAmountThawing = event.params.totalAmountThawing.toBigDecimal()
-        escrow.thawnEndTimestamp = event.params.thawEndTimestamp
+        escrow.totalAmountThawing = event.params.totalAmountThawing
+        escrow.thawEndTimestamp = event.params.thawEndTimestamp
         escrow.sender = sender.id
         escrow.receiver = receiver.id
         escrow.save()
@@ -48,18 +47,18 @@ export function handleDeposit(event: Deposit): void {
     }
     if (escrow == null){
         escrow = new EscrowAccount(sender_receiver)
-        escrow.balance = event.params.amount.toBigDecimal()
-        escrow.thawnEndTimestamp = ZERO_BI
-        escrow.totalAmountThawing = ZERO_BD
+        escrow.balance = event.params.amount
+        escrow.thawEndTimestamp = ZERO_BI
+        escrow.totalAmountThawing = ZERO_BI
         escrow.sender = sender.id
         escrow.receiver = receiver.id
     }else{
-        escrow.balance = escrow.balance.plus(event.params.amount.toBigDecimal())
+        escrow.balance = escrow.balance.plus(event.params.amount)
     }
     transaction.type = "deposit"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
-    transaction.amount = event.params.amount.toBigDecimal()
+    transaction.amount = event.params.amount
     transaction.escrowAccount = sender_receiver
 
 
@@ -77,9 +76,11 @@ export function handleWidthrawals(event: Withdraw): void {
     let receiver =  Receiver.load(event.params.receiver.toHexString())
     let sender_receiver = event.params.sender.toHexString() + '-' + event.params.receiver.toHexString()
     let escrow = EscrowAccount.load(sender_receiver)
-    // EscrowAccounts are created at deposit otherwise a widthrawal cant be called
+    // EscrowAccounts are created at deposit otherwise a withdrawal cant be called
     if (escrow != null){
-        escrow.balance = escrow.balance.minus(event.params.amount.toBigDecimal())
+        escrow.balance = escrow.balance.minus(event.params.amount)
+        escrow.totalAmountThawing = ZERO_BI
+        escrow.thawEndTimestamp = ZERO_BI
         // TODO: set as zero timestamp in the evenf of a ssucessfull thaw
         escrow.save()
     }
@@ -92,10 +93,10 @@ export function handleWidthrawals(event: Withdraw): void {
     sender.save()
     receiver.save()
 
-    transaction.type = "widthraw"
+    transaction.type = "withdraw"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
-    transaction.amount = event.params.amount.toBigDecimal()
+    transaction.amount = event.params.amount
     transaction.escrowAccount = sender_receiver
 
     transaction.save()
@@ -111,7 +112,7 @@ export function handleRedeems(event: Redeem): void {
     let escrow = EscrowAccount.load(sender_receiver)
     // EscrowAccounts are created at deposit otherwise a redeem cant be called
     if (escrow != null){
-        escrow.balance = escrow.balance.minus(event.params.actualAmount.toBigDecimal())
+        escrow.balance = escrow.balance.minus(event.params.actualAmount)
         escrow.save()
     }
     if(sender == null){
@@ -124,8 +125,8 @@ export function handleRedeems(event: Redeem): void {
     transaction.sender = sender.id
     transaction.receiver = receiver.id
   
-    transaction.amount = event.params.actualAmount.toBigDecimal()
-    transaction.expectedAmount = event.params.expectedAmount.toBigDecimal()
+    transaction.amount = event.params.actualAmount
+    transaction.expectedAmount = event.params.expectedAmount
     transaction.allocationID = event.params.allocationID.toHexString()
     transaction.escrowAccount = sender_receiver
     
@@ -151,7 +152,7 @@ export function handleRevokeSignerAuthorization(event: RevokeAuthorizedSigner): 
     if(signer == null){
         signer = new AuthorizedSigner(event.params.authorizedSigner.toHexString())
     }
-    signer.is_authorized = true
+    signer.is_authorized = false
     signer.sender = event.params.sender.toHexString()
     signer.save()
 }

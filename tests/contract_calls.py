@@ -4,7 +4,17 @@ import json
 from eth_account.messages import encode_defunct
 import time
 from helpers import decode_custom_error, time_remaining
-from helpers import GATEWAY, ALLOCATION_ID, ALLOCATIONID_PK, SIGNER, SIGNER_PK, RECEIVER
+from helpers import (
+    GATEWAY,
+    ALLOCATION_ID,
+    ALLOCATIONID_PK,
+    SIGNER,
+    SIGNER_PK,
+    RECEIVER,
+    check_subgraph_transaction,
+    check_subgraph_escrow_account,
+    check_subgraph_signer,
+)
 import sys
 from eip712.messages import EIP712Message
 
@@ -13,6 +23,7 @@ ESCROW_ADDRESS = sys.argv[1]
 TAP_ADDRESS = sys.argv[2]
 GRAPH_TOKEN = sys.argv[3]
 STAKING_ADDRESS = sys.argv[4]
+verified_transactions = []
 
 w3 = Web3(Web3.HTTPProvider('http://127.0.0.1:8545'))
 
@@ -91,10 +102,20 @@ except ContractLogicError as e:
 try:
     print("Starting with deposits")
     escrow.functions.deposit(RECEIVER, 15).transact({"from":GATEWAY})
+    verified_transactions = check_subgraph_transaction(GATEWAY, RECEIVER, "deposit", verified_transactions, 15)
+    check_subgraph_escrow_account(GATEWAY, RECEIVER, 0, 15)
+
     escrow.functions.deposit(RECEIVER, 33).transact({"from":SIGNER})
+    verified_transactions = check_subgraph_transaction(SIGNER, RECEIVER, "deposit", verified_transactions, 33)
+    check_subgraph_escrow_account(SIGNER, RECEIVER, 0, 33)
+
     escrow.functions.deposit(SIGNER, 44).transact({"from":GATEWAY})
+    verified_transactions = check_subgraph_transaction(GATEWAY, SIGNER, "deposit", verified_transactions, 44)
+    check_subgraph_escrow_account(GATEWAY, SIGNER, 0, 44)
+    
     print("Start thawing")
     escrow.functions.thaw(SIGNER, 10).transact({"from":GATEWAY})
+    check_subgraph_escrow_account(GATEWAY, SIGNER, 10, 44)
     thawing = True
     while(thawing):
         try:
@@ -107,6 +128,10 @@ try:
                 time_left = time_remaining(error)
                 print(f"Escrow still thawing, time left: {time_left}")
                 time.sleep(time_left + 1)
+    print("Amount withdrawn")
+    verified_transactions = check_subgraph_transaction(GATEWAY, SIGNER, "withdraw", verified_transactions, 10)
+    check_subgraph_escrow_account(GATEWAY, SIGNER, 0, 34)
+
     print("Approving")
     escrow.functions.approveAll().transact({"from":GATEWAY})
     print("Approving signer")
@@ -120,13 +145,43 @@ try:
             print("Skip, signer already authorized")
         else:
             print(error)
+    check_subgraph_signer(SIGNER, True)
+
     print("Executing deposit for redeem")
     escrow.functions.deposit(RECEIVER, 12).transact({"from":GATEWAY})
+    verified_transactions = check_subgraph_transaction(GATEWAY, RECEIVER, "deposit", verified_transactions, 12)
+    check_subgraph_escrow_account(GATEWAY, RECEIVER, 0, 27)
+
     print("Executing redeem")
     escrow.functions.redeem(signedRAV, signature_proof.signature).transact({"from":RECEIVER})
+    verified_transactions = check_subgraph_transaction(GATEWAY, RECEIVER, "redeem", verified_transactions, 5)
+    check_subgraph_escrow_account(GATEWAY, RECEIVER, 0, 22)
+
+    print("Thawing signer")
+    escrow.functions.thawSigner(SIGNER).transact({"from":GATEWAY})
+    thawing = True
+    while(thawing):
+        try:
+            print("Trying to revoke signer")
+            escrow.functions.revokeAuthorizedSigner(SIGNER).transact({"from":GATEWAY})
+            thawing = False
+        except ContractCustomError as e:
+            error = decode_custom_error(escrow_abi_json,str(e),w3)
+            if("SignerStillThawing" in error):
+                time_left = time_remaining(error)
+                print(f"Signer still thawing, time left: {time_left}")
+                time.sleep(time_left + 1)
+            else:
+                print(error)
+    print("Done revoking")
+    
+    check_subgraph_signer(SIGNER, False)
+
     print("Transactions ran succesfully")
 except ContractCustomError as e:
     print ('Custom Error: %s' % e)
     print (decode_custom_error(escrow_abi_json,str(e),w3))
 except ContractLogicError as e:
     print ('Logic Error: %s' % e)
+except Exception as e:
+    print(e)
