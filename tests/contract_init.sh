@@ -43,13 +43,14 @@ echo "Escrow address: $ESCROW_AD"
 
 cd $current_dir
 
-echo "Running escrow contract calls"
-python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
-
+echo "Deploying locally the subgraph"
 yq ".dataSources[].source.address=\"$ESCROW_AD\"" ../subgraph.yaml -i
 yarn codegen
 yarn build
 yarn create-local
 yarn deploy-local
 
-echo "Run commands to deploy subgraph, make sure to use the Escrow Address $ESCROW_AD in the subgraph.yaml"
+echo "Running escrow contract calls"
+python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
+
+
