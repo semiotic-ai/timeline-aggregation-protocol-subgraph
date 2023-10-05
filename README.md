@@ -84,3 +84,13 @@ yarn deploy-local
 #### Run contract_calls.py
 This will execute all the calls towards the escrow contract and the subgraph will index all this new entries.
 Authorization for a signer and redeeming will only work the first time, else the data needs to be changed (you can just rerun contract_init.sh and resets all).
+
+
+## Deploying to a testnet
+
+### Deploy your subgraph into graph studio
+Follow the instructions at https://thegraph.com/docs/en/deploying/deploying-a-subgraph-to-studio/
+After doing so go into `testnet-calls.py` and add your mnemonic in there so that it can access your wallet.
+
+
+Afterwards run `python testnet-calls.py` with the arg `eth-goerli` for eth-goerli testnet or `arbitrum-goerli` for arbitrum-goerli testnet. A secondary arg is needed where you will send your wallet mnemonic as a string.

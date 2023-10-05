@@ -38,6 +38,7 @@ type Transaction @entity{
 
 type AuthorizedSigner @entity{
   id: ID!
-  is_authorized: Boolean
+  isAuthorized: Boolean!
   sender: Sender!
+  thawEndTimestamp: BigInt!
 }

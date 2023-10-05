@@ -2,12 +2,12 @@
   "name": "tap-subgraph",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "Apache-2.0 license",
+  "license": "Apache-2.0",
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
     "create-local": "graph create semiotic/tap --node http://127.0.0.1:8020",
-    "deploy-local": "graph deploy semiotic/tap --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020"
+    "deploy-local": "graph deploy semiotic/tap --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020 -l v0"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.54.0",
