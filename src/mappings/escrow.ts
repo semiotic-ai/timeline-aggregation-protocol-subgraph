@@ -7,7 +7,7 @@ import {
     EscrowAccount,
     AuthorizedSigner
 } from '../types/schema'
-import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner} from '../types/Escrow/Escrow'
+import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner, CancelThaw, CancelThawSigner} from '../types/Escrow/Escrow'
 let ZERO_BI = BigInt.fromI32(0)
 
 export function handleThaw(event: Thaw): void {
@@ -33,6 +33,21 @@ export function handleThaw(event: Thaw): void {
     }
     
 }
+
+export function handleCancelThaw(event: CancelThaw): void {
+    
+    let sender = Sender.load(event.params.sender.toHexString())
+    let receiver =  Receiver.load(event.params.receiver.toHexString())
+    let sender_receiver = event.params.sender.toHexString() + '-' + event.params.receiver.toHexString()
+    let escrow = EscrowAccount.load(sender_receiver)
+    // EscrowAccounts are created at deposit otherwise a withdrawal cant be called
+    if (escrow != null){
+        escrow.totalAmountThawing = ZERO_BI
+        escrow.thawEndTimestamp = ZERO_BI
+        escrow.save()
+    }
+}
+
 export function handleDeposit(event: Deposit): void {
     let transaction = new Transaction(event.transaction.hash.toHexString())
     let sender = Sender.load(event.params.sender.toHexString())
@@ -81,7 +96,6 @@ export function handleWidthrawals(event: Withdraw): void {
         escrow.balance = escrow.balance.minus(event.params.amount)
         escrow.totalAmountThawing = ZERO_BI
         escrow.thawEndTimestamp = ZERO_BI
-        // TODO: set as zero timestamp in the evenf of a ssucessfull thaw
         escrow.save()
     }
     if(sender == null){
@@ -142,8 +156,9 @@ export function handleSignerAuthorization(event: AuthorizeSigner): void {
         signer = new AuthorizedSigner(event.params.signer.toHexString())
     }
     
-    signer.is_authorized = true
+    signer.isAuthorized = true
     signer.sender = event.params.sender.toHexString()
+    signer.thawEndTimestamp = ZERO_BI
     signer.save()
 }
 
@@ -152,7 +167,32 @@ export function handleRevokeSignerAuthorization(event: RevokeAuthorizedSigner): 
     if(signer == null){
         signer = new AuthorizedSigner(event.params.authorizedSigner.toHexString())
     }
-    signer.is_authorized = false
+    signer.isAuthorized = false
     signer.sender = event.params.sender.toHexString()
+    signer.thawEndTimestamp = ZERO_BI
+    signer.save()
+}
+
+export function handleThawSigner(event: CancelThawSigner): void {
+    
+    let signer = AuthorizedSigner.load(event.params.authorizedSigner.toHexString())
+    if(signer == null){
+        signer = new AuthorizedSigner(event.params.authorizedSigner.toHexString())
+    }
+    signer.sender = event.params.sender.toHexString()
+    signer.isAuthorized = true
+    signer.thawEndTimestamp = event.params.thawEndTimestamp
+    signer.save()
+}
+
+export function handleCancelThawSigner(event: CancelThawSigner): void {
+    
+    let signer = AuthorizedSigner.load(event.params.authorizedSigner.toHexString())
+    if(signer == null){
+        signer = new AuthorizedSigner(event.params.authorizedSigner.toHexString())
+    }
+    signer.sender = event.params.sender.toHexString()
+    signer.isAuthorized = true
+    signer.thawEndTimestamp = ZERO_BI
     signer.save()
 }

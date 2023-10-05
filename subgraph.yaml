@@ -4,11 +4,11 @@ repository: https://github.com/semiotic-ai/timeline-aggregation-protocol-contrac
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
+  - kind: ethereum
     name: Escrow
     network: mainnet
     source:
-      address: '0x63De3720298826EB4EC14F1214b33a2808e5DADf'
+      address: '0xe2e5421247C9aac3eee8417900138aB741b9f990'
       abi: Escrow
       startBlock: 0
     mapping:
@@ -34,4 +34,9 @@ dataSources:
           handler: handleSignerAuthorization
         - event: RevokeAuthorizedSigner(indexed address,indexed address)
           handler: handleRevokeSignerAuthorization
-        
+        - event: CancelThaw(indexed address,indexed address)
+          handler: handleCancelThaw
+        - event: ThawSigner(indexed address,indexed address,uint256)
+          handler: handleThawSigner
+        - event: CancelThawSigner(indexed address,indexed address,uint256)
+          handler: handleCancelThawSigner
