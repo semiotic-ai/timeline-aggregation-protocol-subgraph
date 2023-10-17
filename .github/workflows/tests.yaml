@@ -14,6 +14,8 @@ jobs:
       steps:
       - uses: actions/checkout@v3
         name: Check out repository
+      - name: Checkout submodules
+        uses: textbook/git-checkout-submodule-action@master
       - uses: actions/setup-node@v2
         name: Set up Node.js
         with:
