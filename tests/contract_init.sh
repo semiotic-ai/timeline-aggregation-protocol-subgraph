@@ -52,7 +52,7 @@ yarn deploy-local
 
 cd $current_dir
 echo "Running escrow contract calls"
-python "$current_dir/contract_calls.py" "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
+python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
 
 if [ $? -ne 0 ]; then
   exit 1  
