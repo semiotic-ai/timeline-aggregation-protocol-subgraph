@@ -50,7 +50,6 @@ yarn build
 yarn create-local
 yarn deploy-local
 
-cd $current_dir
 echo "Running escrow contract calls"
 python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
 
