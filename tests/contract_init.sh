@@ -41,7 +41,10 @@ ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 sr
 ESCROW_AD=$(echo $ESCROW_VAR | jq -r '.deployedTo')
 echo "Escrow address: $ESCROW_AD"
 
-cd $current_dir/..
+cd $current_dir
+cd ..
+echo "================ CURRENT DIR ============="
+echo pwd
 
 echo "Deploying locally the subgraph"
 yq ".dataSources[].source.address=\"$ESCROW_AD\"" ../subgraph.yaml -i
@@ -50,6 +53,7 @@ yarn build
 yarn create-local
 yarn deploy-local
 
+cd $current_dir
 echo "Running escrow contract calls"
 python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
 
