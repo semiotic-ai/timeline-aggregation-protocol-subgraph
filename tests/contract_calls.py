@@ -2,6 +2,7 @@ from web3 import Web3
 from web3.exceptions import ContractCustomError, ContractLogicError
 import json
 from eth_account.messages import encode_defunct
+import sys
 import time
 from helpers import decode_custom_error, time_remaining
 from helpers import (
@@ -85,8 +86,10 @@ try:
 except ContractCustomError as e:
     print ('Custom Error: %s' % e)
     print (decode_custom_error(erc20_abi_json,str(e),w3))
+    sys.exit(1)
 except ContractLogicError as e:
-    print ('Logic Error: %s' % e)   
+    print ('Logic Error: %s' % e)
+    sys.exit(1) 
 
 # MOCK STAKING CONTRACT CALLS
 try:
@@ -95,8 +98,10 @@ try:
 except ContractCustomError as e:
     print ('Custom Error: %s' % e)
     print (decode_custom_error(mockStaking_abi_json,str(e),w3))
+    sys.exit(1)
 except ContractLogicError as e:
     print ('Logic Error: %s' % e)
+    sys.exit(1)
 
 # ESCROW CONTRACT CALLS
 try:
@@ -145,6 +150,7 @@ try:
             print("Skip, signer already authorized")
         else:
             print(error)
+            sys.exit(1)
     check_subgraph_signer(SIGNER, True)
 
     print("Executing deposit for redeem")
@@ -181,7 +187,10 @@ try:
 except ContractCustomError as e:
     print ('Custom Error: %s' % e)
     print (decode_custom_error(escrow_abi_json,str(e),w3))
+    sys.exit(1)
 except ContractLogicError as e:
     print ('Logic Error: %s' % e)
+    sys.exit(1)
 except Exception as e:
     print(e)
+    sys.exit(1)

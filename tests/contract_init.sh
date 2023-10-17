@@ -53,4 +53,8 @@ yarn deploy-local
 echo "Running escrow contract calls"
 python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
 
+if [ $? -ne 0 ]; then
+  exit 1  
+fi
+
 
