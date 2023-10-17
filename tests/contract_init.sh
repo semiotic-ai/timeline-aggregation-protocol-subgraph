@@ -6,6 +6,7 @@ RECEIVER=0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b
 
 # Obtain curren dir
 current_dir=$(pwd)
+current_dir=$current_dir/tests
 
 echo "Step 1: Run graph contracts"
 cd $current_dir/contracts
