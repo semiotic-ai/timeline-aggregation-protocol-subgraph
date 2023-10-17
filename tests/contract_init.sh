@@ -6,7 +6,7 @@ RECEIVER=0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b
 
 # Obtain curren dir
 current_dir=$(pwd)
-current_dir=$current_dir/tests
+current_dir=$current_dir
 
 echo "Step 1: Run graph contracts"
 cd $current_dir/contracts
@@ -51,6 +51,7 @@ yarn build
 yarn create-local
 yarn deploy-local
 
+cd $current_dir
 echo "Running escrow contract calls"
 python "$current_dir/contract_calls.py" "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
 

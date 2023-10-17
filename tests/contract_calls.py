@@ -19,6 +19,7 @@ from helpers import (
 import sys
 from eip712.messages import EIP712Message
 
+
 # This script will help test that the subgraph is actually catching the required information
 ESCROW_ADDRESS = sys.argv[1]
 TAP_ADDRESS = sys.argv[2]
