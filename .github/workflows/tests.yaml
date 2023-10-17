@@ -40,3 +40,4 @@ jobs:
       - run: |
           ./tests/contract_init.sh
         name: Build and Test
+        working-directory: ./tests
