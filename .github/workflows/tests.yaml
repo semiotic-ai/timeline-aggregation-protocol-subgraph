@@ -24,6 +24,12 @@ jobs:
       - name: Start Docker Compose
         run: |
               docker-compose up -d
+      - name: Copy the python file
+        run: |
+              COPY contract_calls.py /usr/bin/contract_calls.py
+      - name: Copy the python file 2 
+        run: |
+              COPY contract_calls.py contract_calls.py
         working-directory: ./tests
       - run: |
           ./tests/contract_init.sh
