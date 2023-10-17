@@ -42,7 +42,7 @@ ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 sr
 ESCROW_AD=$(echo $ESCROW_VAR | jq -r '.deployedTo')
 echo "Escrow address: $ESCROW_AD"
 
-cd $current_dir
+cd $current_dir/..
 
 echo "Deploying locally the subgraph"
 yq ".dataSources[].source.address=\"$ESCROW_AD\"" ../subgraph.yaml -i
