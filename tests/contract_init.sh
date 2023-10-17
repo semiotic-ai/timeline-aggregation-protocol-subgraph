@@ -15,14 +15,14 @@ FULL_CMD_LOG="$(yes | yarn deploy-localhost --auto-mine)"
 echo "Obtaining Graph address token"
 GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
 
-
+FULL_TAP_CONTRACT_PATH = $current_dir/timeline-aggregation-protocol-contracts
 command cd $current_dir/timeline-aggregation-protocol-contracts
 command yarn
 command forge install
 command forge update
 echo "Graph token address: $GRAPH_TOKEN"
 echo "Step 2: Obtain allocation tracker address"
-ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/AllocationIDTracker.sol:AllocationIDTracker --json)
+ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 $FULL_TAP_CONTRACT_PATH/src/AllocationIDTracker.sol:AllocationIDTracker --json)
 ALLOCATION_TRACKER_AD=$(echo $ALLOCATION_VAR | jq -r '.deployedTo')
 echo "Allocation tracker address: $ALLOCATION_TRACKER_AD"
 
@@ -32,12 +32,12 @@ ISTAKING_AD=$(echo $ISTAKING_VAR | jq -r '.deployedTo')
 echo "Istaking address: $ISTAKING_AD"
 
 echo "Step 4: Obtain TAPVerifier address"
-TAP_VERIFIER_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/TAPVerifier.sol:TAPVerifier --constructor-args 'tapVerifier' '1.0' --json)
+TAP_VERIFIER_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 $FULL_TAP_CONTRACT_PATH/src/TAPVerifier.sol:TAPVerifier --constructor-args 'tapVerifier' '1.0' --json)
 TAP_VERIFIER_AD=$(echo $TAP_VERIFIER_VAR | jq -r '.deployedTo')
 echo "Tap verifier address: $TAP_VERIFIER_AD"
 
 echo "Step 5: Obtain Escrow address"
-ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/Escrow.sol:Escrow --constructor-args $GRAPH_TOKEN $ISTAKING_AD $TAP_VERIFIER_AD $ALLOCATION_TRACKER_AD 10 15 --json)
+ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 $FULL_TAP_CONTRACT_PATH/src/Escrow.sol:Escrow --constructor-args $GRAPH_TOKEN $ISTAKING_AD $TAP_VERIFIER_AD $ALLOCATION_TRACKER_AD 10 15 --json)
 ESCROW_AD=$(echo $ESCROW_VAR | jq -r '.deployedTo')
 echo "Escrow address: $ESCROW_AD"
 
@@ -51,7 +51,7 @@ yarn create-local
 yarn deploy-local
 
 echo "Running escrow contract calls"
-python contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
+python "$current_dir/contract_calls.py" "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
 
 if [ $? -ne 0 ]; then
   exit 1  
