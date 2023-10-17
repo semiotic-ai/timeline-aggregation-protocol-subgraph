@@ -38,6 +38,6 @@ jobs:
               pip install -r requirements.txt
         working-directory: ./tests
       - run: |
-          ./tests/contract_init.sh
+          ./contract_init.sh
         name: Build and Test
         working-directory: ./tests
