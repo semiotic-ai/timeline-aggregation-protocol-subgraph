@@ -20,17 +20,23 @@ jobs:
         name: Set up Node.js
         with:
           node-version: "lts/gallium"
+      - name: Install graph CLI
+        run: |
+          npm install -g @graphprotocol/graph-cli
       - uses: actions/setup-python@v4
         with:
             python-version: ${{ matrix.python-version }}
             cache: pip
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-
-      - run: |
-              npm install -g @graphprotocol/graph-cli
+      - name: Start Docker Compose
+        run: |
               docker-compose up -d
-              pip install -r requirements.txt
-              ./contract_init.sh
-        name: Build and Test
         working-directory: ./tests
+      - name: Installing python requirements
+        run: |
+              pip install -r requirements.txt
+        working-directory: ./tests
+      - run: |
+          ./tests/contract_init.sh
+        name: Build and Test
