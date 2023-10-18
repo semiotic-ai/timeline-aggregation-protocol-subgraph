@@ -46,6 +46,9 @@ cd ..
 echo "================ CURRENT DIR ============="
 path="$(pwd)"
 echo $path
+echo "+++++++++++++++ FILES ++++++++++++++"
+files="$(ls)"
+echo $files
 
 echo "Deploying locally the subgraph"
 yq ".dataSources[].source.address=\"$ESCROW_AD\"" subgraph.yaml -i
