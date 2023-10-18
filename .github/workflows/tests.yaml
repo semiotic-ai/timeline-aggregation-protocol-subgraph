@@ -38,6 +38,7 @@ jobs:
               pip install -r requirements.txt
         working-directory: ./tests
       - run: |
+          yarn
           ./contract_init.sh
         name: Build and Test
         working-directory: ./tests
