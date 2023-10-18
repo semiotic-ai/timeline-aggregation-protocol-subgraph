@@ -7,8 +7,6 @@ jobs:
     tests:
       strategy:
           fail-fast: true
-          matrix:
-            python-version: ["3.8", "3.9", "3.10"]
       runs-on: ubuntu-latest
       name: Build and Test
       steps:
@@ -25,7 +23,7 @@ jobs:
           npm install -g @graphprotocol/graph-cli
       - uses: actions/setup-python@v4
         with:
-            python-version: ${{ matrix.python-version }}
+            python-version: '3.8'
             cache: pip
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1

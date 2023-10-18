@@ -6,7 +6,6 @@ RECEIVER=0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b
 
 # Obtain curren dir
 current_dir=$(pwd)
-
 echo "Step 1: Run graph contracts"
 cd $current_dir/contracts
 yarn
@@ -43,12 +42,6 @@ echo "Escrow address: $ESCROW_AD"
 
 cd $current_dir
 cd ..
-echo "================ CURRENT DIR ============="
-path="$(pwd)"
-echo $path
-echo "+++++++++++++++ FILES ++++++++++++++"
-files="$(ls)"
-echo $files
 
 echo "Deploying locally the subgraph"
 yq ".dataSources[].source.address=\"$ESCROW_AD\"" subgraph.yaml -i
