@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 GATEWAY=0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1
 SIGNER=0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0
@@ -18,8 +19,6 @@ GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
 
 command cd $current_dir/timeline-aggregation-protocol-contracts
 command yarn
-command forge install
-command forge update
 echo "Graph token address: $GRAPH_TOKEN"
 echo "Step 2: Obtain allocation tracker address"
 ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/AllocationIDTracker.sol:AllocationIDTracker --json)
@@ -52,5 +51,3 @@ yarn deploy-local
 
 echo "Running escrow contract calls"
 python local_contract_calls.py "$ESCROW_AD" "$TAP_VERIFIER_AD" "$GRAPH_TOKEN" "$ISTAKING_AD"
-
-

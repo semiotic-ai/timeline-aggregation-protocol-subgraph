@@ -1,0 +1,46 @@
+name: Local chain tests
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+jobs:
+    tests:
+      strategy:
+          fail-fast: true
+      runs-on: ubuntu-latest
+      name: Build and Test
+      steps:
+      - uses: actions/checkout@v4
+        name: Check out repository
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v2
+        name: Set up Node.js
+        with:
+          node-version: "lts/gallium"
+      - name: Install graph CLI
+        run: npm install -g @graphprotocol/graph-cli
+      - uses: actions/setup-python@v4
+        with:
+            python-version: '3.8'
+            cache: pip
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+      - name: Start Docker Compose
+        run: docker-compose up -d
+        working-directory: ./tests
+      - name: Checking graph-node availability
+        uses: nick-fields/retry@v2
+        with:
+          max_attempts: 3
+          retry_on: error
+          timeout_seconds: 5
+          command: nc -zv 127.0.0.1 8030
+      - name: Installing python requirements
+        run: pip install -r requirements.txt
+        working-directory: ./tests
+      - run: |
+          yarn
+          ./contract_init.sh
+        name: Build and Test
+        working-directory: ./tests
