@@ -9,132 +9,73 @@ import {
 } from '../types/schema'
 import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner, CancelThaw, CancelThawSigner} from '../types/Escrow/Escrow'
 let ZERO_BI = BigInt.fromI32(0)
+let ZERO_AD = '0x0000000000000000000000000000000000000000'
 
 export function handleThaw(event: Thaw): void {
-    let sender_receiver = event.params.sender.toHexString() + '-' + event.params.receiver.toHexString()
-    let escrow = EscrowAccount.load(sender_receiver)
-    let sender = Sender.load(event.params.sender.toHexString())
-    let receiver =  Receiver.load(event.params.receiver.toHexString())
-    if(sender == null){
-        sender = new Sender(event.params.sender.toHexString())
-    }
-    if(receiver == null){
-        receiver = new Receiver(event.params.receiver.toHexString())
-    }
-    sender.save()
-    receiver.save()
-    // EscrowAccounts are created at deposit otherwise thaw cant be called
-    if (escrow != null){
-        escrow.totalAmountThawing = event.params.totalAmountThawing
-        escrow.thawEndTimestamp = event.params.thawEndTimestamp
-        escrow.sender = sender.id
-        escrow.receiver = receiver.id
-        escrow.save()
-    }
+    let sender = createOrLoadSender(event.params.sender.toHexString())
+    let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
+    let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+
+    escrow.totalAmountThawing = event.params.totalAmountThawing
+    escrow.thawEndTimestamp = event.params.thawEndTimestamp
+    escrow.sender = sender.id
+    escrow.receiver = receiver.id
+    escrow.save()
     
 }
 
 export function handleCancelThaw(event: CancelThaw): void {
-    
-    let sender = Sender.load(event.params.sender.toHexString())
-    let receiver =  Receiver.load(event.params.receiver.toHexString())
-    let sender_receiver = event.params.sender.toHexString() + '-' + event.params.receiver.toHexString()
-    let escrow = EscrowAccount.load(sender_receiver)
-    // EscrowAccounts are created at deposit otherwise a withdrawal cant be called
-    if (escrow != null){
-        escrow.totalAmountThawing = ZERO_BI
-        escrow.thawEndTimestamp = ZERO_BI
-        escrow.save()
-    }
+    let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+    escrow.totalAmountThawing = ZERO_BI
+    escrow.thawEndTimestamp = ZERO_BI
+    escrow.save()
 }
 
 export function handleDeposit(event: Deposit): void {
     let transaction = new Transaction(event.transaction.hash.toHexString())
-    let sender = Sender.load(event.params.sender.toHexString())
-    let receiver =  Receiver.load(event.params.receiver.toHexString())
-    let sender_receiver = event.params.sender.toHexString() + '-' + event.params.receiver.toHexString()
-    let escrow = EscrowAccount.load(sender_receiver)
-    if(sender == null){
-        sender = new Sender(event.params.sender.toHexString())
-    }
-    if(receiver == null){
-        receiver = new Receiver(event.params.receiver.toHexString())
-    }
-    if (escrow == null){
-        escrow = new EscrowAccount(sender_receiver)
-        escrow.balance = event.params.amount
-        escrow.thawEndTimestamp = ZERO_BI
-        escrow.totalAmountThawing = ZERO_BI
-        escrow.sender = sender.id
-        escrow.receiver = receiver.id
-    }else{
-        escrow.balance = escrow.balance.plus(event.params.amount)
-    }
+    let sender = createOrLoadSender(event.params.sender.toHexString())
+    let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
+    let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+
+    escrow.balance = escrow.balance.plus(event.params.amount)
+
     transaction.type = "deposit"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
     transaction.amount = event.params.amount
-    transaction.escrowAccount = sender_receiver
+    transaction.escrowAccount = escrow.id
 
-
-    sender.save()
-    receiver.save()
     transaction.save()
     escrow.save()
 }
 
 export function handleWidthrawals(event: Withdraw): void {
-    
-
     let transaction = new Transaction(event.transaction.hash.toHexString())
-    let sender = Sender.load(event.params.sender.toHexString())
-    let receiver =  Receiver.load(event.params.receiver.toHexString())
-    let sender_receiver = event.params.sender.toHexString() + '-' + event.params.receiver.toHexString()
-    let escrow = EscrowAccount.load(sender_receiver)
-    // EscrowAccounts are created at deposit otherwise a withdrawal cant be called
-    if (escrow != null){
-        escrow.balance = escrow.balance.minus(event.params.amount)
-        escrow.totalAmountThawing = ZERO_BI
-        escrow.thawEndTimestamp = ZERO_BI
-        escrow.save()
-    }
-    if(sender == null){
-      sender = new Sender(event.params.sender.toHexString())
-    }
-    if(receiver == null){
-      receiver = new Receiver(event.params.receiver.toHexString())
-    }
-    sender.save()
-    receiver.save()
+    let sender = createOrLoadSender(event.params.sender.toHexString())
+    let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
+    let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
 
+    escrow.balance = escrow.balance.minus(event.params.amount)
+    escrow.totalAmountThawing = ZERO_BI
+    escrow.thawEndTimestamp = ZERO_BI
+    
     transaction.type = "withdraw"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
     transaction.amount = event.params.amount
-    transaction.escrowAccount = sender_receiver
+    transaction.escrowAccount = escrow.id
 
     transaction.save()
+    escrow.save()
     
 }
 
 export function handleRedeems(event: Redeem): void {
-    
     let transaction = new Transaction(event.transaction.hash.toHexString())
-    let sender = Sender.load(event.params.sender.toHexString())
-    let receiver =  Receiver.load(event.params.receiver.toHexString())
-    let sender_receiver = event.params.sender.toHexString() + '-' + event.params.receiver.toHexString()
-    let escrow = EscrowAccount.load(sender_receiver)
-    // EscrowAccounts are created at deposit otherwise a redeem cant be called
-    if (escrow != null){
-        escrow.balance = escrow.balance.minus(event.params.actualAmount)
-        escrow.save()
-    }
-    if(sender == null){
-      sender = new Sender(event.params.sender.toHexString())
-    }
-    if(receiver == null){
-      receiver = new Receiver(event.params.receiver.toHexString())
-    }
+    let sender = createOrLoadSender(event.params.sender.toHexString())
+    let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
+    let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+    escrow.balance = escrow.balance.minus(event.params.actualAmount)
     transaction.type = "redeem"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
@@ -142,20 +83,15 @@ export function handleRedeems(event: Redeem): void {
     transaction.amount = event.params.actualAmount
     transaction.expectedAmount = event.params.expectedAmount
     transaction.allocationID = event.params.allocationID.toHexString()
-    transaction.escrowAccount = sender_receiver
+    transaction.escrowAccount = escrow.id
     
-    sender.save()
-    receiver.save()
     transaction.save()
+    escrow.save()
     
 }
 
 export function handleSignerAuthorization(event: AuthorizeSigner): void {
-    let signer = AuthorizedSigner.load(event.params.signer.toHexString())
-    if(signer == null){
-        signer = new AuthorizedSigner(event.params.signer.toHexString())
-    }
-    
+    let signer = createOrLoadAuthorizedSigner(event.params.signer.toHexString())
     signer.isAuthorized = true
     signer.sender = event.params.sender.toHexString()
     signer.thawEndTimestamp = ZERO_BI
@@ -163,10 +99,7 @@ export function handleSignerAuthorization(event: AuthorizeSigner): void {
 }
 
 export function handleRevokeSignerAuthorization(event: RevokeAuthorizedSigner): void {
-    let signer = AuthorizedSigner.load(event.params.authorizedSigner.toHexString())
-    if(signer == null){
-        signer = new AuthorizedSigner(event.params.authorizedSigner.toHexString())
-    }
+    let signer = createOrLoadAuthorizedSigner(event.params.authorizedSigner.toHexString())
     signer.isAuthorized = false
     signer.sender = event.params.sender.toHexString()
     signer.thawEndTimestamp = ZERO_BI
@@ -174,11 +107,7 @@ export function handleRevokeSignerAuthorization(event: RevokeAuthorizedSigner): 
 }
 
 export function handleThawSigner(event: CancelThawSigner): void {
-    
-    let signer = AuthorizedSigner.load(event.params.authorizedSigner.toHexString())
-    if(signer == null){
-        signer = new AuthorizedSigner(event.params.authorizedSigner.toHexString())
-    }
+    let signer = createOrLoadAuthorizedSigner(event.params.authorizedSigner.toHexString())
     signer.sender = event.params.sender.toHexString()
     signer.isAuthorized = true
     signer.thawEndTimestamp = event.params.thawEndTimestamp
@@ -186,13 +115,54 @@ export function handleThawSigner(event: CancelThawSigner): void {
 }
 
 export function handleCancelThawSigner(event: CancelThawSigner): void {
-    
-    let signer = AuthorizedSigner.load(event.params.authorizedSigner.toHexString())
-    if(signer == null){
-        signer = new AuthorizedSigner(event.params.authorizedSigner.toHexString())
-    }
+    let signer = createOrLoadAuthorizedSigner(event.params.authorizedSigner.toHexString())
     signer.sender = event.params.sender.toHexString()
     signer.isAuthorized = true
     signer.thawEndTimestamp = ZERO_BI
     signer.save()
+}
+
+export function createOrLoadSender(id: string): Sender{
+    let sender = Sender.load(id)
+    if(sender == null){
+        sender = new Sender(id)
+        sender.save()
+    }
+    return sender as Sender
+}
+
+export function createOrLoadReceiver(id: string): Receiver{
+    let receiver = Receiver.load(id)
+    if(receiver == null){
+        receiver = new Receiver(id)
+        receiver.save()
+    }
+    return receiver as Receiver
+}
+
+export function createOrLoadAuthorizedSigner(id: string): AuthorizedSigner{
+    let authorizedSigner = AuthorizedSigner.load(id)
+    if(authorizedSigner == null){
+        authorizedSigner = new AuthorizedSigner(id)
+        authorizedSigner.isAuthorized = false
+        authorizedSigner.sender = ZERO_AD
+        authorizedSigner.thawEndTimestamp = ZERO_BI
+        authorizedSigner.save()
+    }
+    return authorizedSigner as AuthorizedSigner
+}
+
+export function createOrLoadEscrowAccount(sender: string, receiver: string): EscrowAccount{
+    let sender_receiver = sender + '-' + receiver
+    let escrowAccount = EscrowAccount.load(sender_receiver)
+    if(escrowAccount == null){
+        escrowAccount = new EscrowAccount(sender_receiver)
+        escrowAccount.balance = ZERO_BI
+        escrowAccount.thawEndTimestamp = ZERO_BI
+        escrowAccount.totalAmountThawing = ZERO_BI
+        escrowAccount.sender = sender
+        escrowAccount.receiver = receiver
+        escrowAccount.save()
+    }
+    return escrowAccount as EscrowAccount
 }
