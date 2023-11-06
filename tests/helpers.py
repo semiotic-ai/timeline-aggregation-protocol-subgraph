@@ -114,7 +114,7 @@ def check_subgraph_transaction(
 ):
     graphql_query = """
         query($id: String!){
-            transactions(where: {id: $id}) {
+            transactions(where: {transactionGroupID: $id}) {
                 amount
             }
         }

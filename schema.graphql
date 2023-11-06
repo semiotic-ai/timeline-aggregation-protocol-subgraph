@@ -27,6 +27,7 @@ type Receiver @entity {
 
 type Transaction @entity{
   id: ID!
+  transactionGroupID: String!
   type: String!
   sender: Sender!
   receiver: Receiver!
