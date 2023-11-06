@@ -32,7 +32,7 @@ export function handleCancelThaw(event: CancelThaw): void {
 }
 
 export function handleDeposit(event: Deposit): void {
-    let transaction = new Transaction(event.transaction.hash.toHexString())
+    let transaction = new Transaction(event.transaction.hash.toHexString() + '-' + event.logIndex.toString())
     let sender = createOrLoadSender(event.params.sender.toHexString())
     let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
@@ -44,13 +44,14 @@ export function handleDeposit(event: Deposit): void {
     transaction.receiver = receiver.id
     transaction.amount = event.params.amount
     transaction.escrowAccount = escrow.id
+    transaction.transactionGroupID = event.transaction.hash.toHexString()
 
     transaction.save()
     escrow.save()
 }
 
 export function handleWidthrawals(event: Withdraw): void {
-    let transaction = new Transaction(event.transaction.hash.toHexString())
+    let transaction = new Transaction(event.transaction.hash.toHexString() + '-' + event.logIndex.toString())
     let sender = createOrLoadSender(event.params.sender.toHexString())
     let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
@@ -64,6 +65,7 @@ export function handleWidthrawals(event: Withdraw): void {
     transaction.receiver = receiver.id
     transaction.amount = event.params.amount
     transaction.escrowAccount = escrow.id
+    transaction.transactionGroupID = event.transaction.hash.toHexString()
 
     transaction.save()
     escrow.save()
@@ -71,7 +73,7 @@ export function handleWidthrawals(event: Withdraw): void {
 }
 
 export function handleRedeems(event: Redeem): void {
-    let transaction = new Transaction(event.transaction.hash.toHexString())
+    let transaction = new Transaction(event.transaction.hash.toHexString() + '-' + event.logIndex.toString())
     let sender = createOrLoadSender(event.params.sender.toHexString())
     let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
@@ -84,7 +86,8 @@ export function handleRedeems(event: Redeem): void {
     transaction.expectedAmount = event.params.expectedAmount
     transaction.allocationID = event.params.allocationID.toHexString()
     transaction.escrowAccount = escrow.id
-    
+    transaction.transactionGroupID = event.transaction.hash.toHexString()
+        
     transaction.save()
     escrow.save()
     
