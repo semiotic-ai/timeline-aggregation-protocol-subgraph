@@ -32,63 +32,70 @@ export function handleCancelThaw(event: CancelThaw): void {
 }
 
 export function handleDeposit(event: Deposit): void {
-    let transaction = new Transaction(event.transaction.hash.toHexString() + '-' + event.logIndex.toString())
     let sender = createOrLoadSender(event.params.sender.toHexString())
     let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
-
+    newTransaction(
+        event.transaction.hash.toHexString(),
+        event.logIndex.toString(),
+        "deposit",
+        escrow.id,
+        sender.id,
+        receiver.id,
+        event.params.amount,
+        ZERO_BI,
+        ZERO_BI,
+        ZERO_AD
+    )
     escrow.balance = escrow.balance.plus(event.params.amount)
 
-    transaction.type = "deposit"
-    transaction.sender = sender.id
-    transaction.receiver = receiver.id
-    transaction.amount = event.params.amount
-    transaction.escrowAccount = escrow.id
-    transaction.transactionGroupID = event.transaction.hash.toHexString()
-
-    transaction.save()
     escrow.save()
 }
 
 export function handleWidthrawals(event: Withdraw): void {
-    let transaction = new Transaction(event.transaction.hash.toHexString() + '-' + event.logIndex.toString())
     let sender = createOrLoadSender(event.params.sender.toHexString())
     let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+    newTransaction(
+        event.transaction.hash.toHexString(),
+        event.logIndex.toString(),
+        "withdraw",
+        escrow.id,
+        sender.id,
+        receiver.id,
+        event.params.amount,
+        ZERO_BI,
+        ZERO_BI,
+        ZERO_AD
+    )
 
     escrow.balance = escrow.balance.minus(event.params.amount)
     escrow.totalAmountThawing = ZERO_BI
     escrow.thawEndTimestamp = ZERO_BI
     
-    transaction.type = "withdraw"
-    transaction.sender = sender.id
-    transaction.receiver = receiver.id
-    transaction.amount = event.params.amount
-    transaction.escrowAccount = escrow.id
-    transaction.transactionGroupID = event.transaction.hash.toHexString()
-
-    transaction.save()
     escrow.save()
     
 }
 
 export function handleRedeems(event: Redeem): void {
-    let transaction = new Transaction(event.transaction.hash.toHexString() + '-' + event.logIndex.toString())
     let sender = createOrLoadSender(event.params.sender.toHexString())
     let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+    newTransaction(
+        event.transaction.hash.toHexString(),
+        event.logIndex.toString(),
+        "redeem",
+        escrow.id,
+        sender.id,
+        receiver.id,
+        ZERO_BI,
+        event.params.actualAmount,
+        event.params.expectedAmount,
+        event.params.allocationID.toHexString()
+    )
+
     escrow.balance = escrow.balance.minus(event.params.actualAmount)
-    transaction.type = "redeem"
-    transaction.sender = sender.id
-    transaction.receiver = receiver.id
-  
-    transaction.amount = event.params.actualAmount
-    transaction.expectedAmount = event.params.expectedAmount
-    transaction.allocationID = event.params.allocationID.toHexString()
-    transaction.escrowAccount = escrow.id
-    transaction.transactionGroupID = event.transaction.hash.toHexString()
-        
-    transaction.save()
+    
     escrow.save()
     
 }
@@ -168,4 +175,22 @@ export function createOrLoadEscrowAccount(sender: string, receiver: string): Esc
         escrowAccount.save()
     }
     return escrowAccount as EscrowAccount
+}
+
+export function newTransaction(txnHash: string, logIndex: string, type: string, escrowID: string, sender: string, receiver: string, amount: BigInt, actualAmount: BigInt, expectedAmount: BigInt, allocationID: string): void{
+    let transaction = new Transaction(txnHash + '-' + logIndex)
+    transaction.type = type
+    transaction.sender = sender
+    transaction.receiver = receiver
+    transaction.escrowAccount = escrowID
+    transaction.transactionGroupID = txnHash
+    if(type == "redeem"){ 
+        transaction.amount = actualAmount
+        transaction.expectedAmount = expectedAmount
+        transaction.allocationID = allocationID
+    }
+    else{
+        transaction.amount = amount
+    }
+    transaction.save()
 }
