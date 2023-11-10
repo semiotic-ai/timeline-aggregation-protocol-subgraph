@@ -37,6 +37,14 @@ type Transaction @entity{
   escrowAccount: EscrowAccount!
 }
 
+type UnnasignedTransaction @entity{
+  id: ID!
+  transactionGroupID: String!
+  type: String!
+  sender: Sender!
+  amount: BigInt!
+}
+
 type AuthorizedSigner @entity{
   id: ID!
   isAuthorized: Boolean!

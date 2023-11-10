@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: Escrow
-    network: mainnet
+    network: goerli
     source:
-      address: '0xe2e5421247C9aac3eee8417900138aB741b9f990'
+      address: '0xD46c60558F7960407F4D00098145D77Fd061aD90'
       abi: Escrow
-      startBlock: 0
+      startBlock: 9765074
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -40,3 +40,7 @@ dataSources:
           handler: handleThawSigner
         - event: CancelThawSigner(indexed address,indexed address,uint256)
           handler: handleCancelThawSigner
+        - event: UnassignedDeposit(indexed address,indexed address,uint256)
+          handler: handleUnassignedDeposit
+        - event: DepositAssigned(indexed address,indexed address,uint256)
+          handler: handleDepositAssigned

@@ -5,9 +5,10 @@ import {
     Sender,
     Receiver,
     EscrowAccount,
-    AuthorizedSigner
+    AuthorizedSigner,
+    UnnasignedTransaction
 } from '../types/schema'
-import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner, CancelThaw, CancelThawSigner} from '../types/Escrow/Escrow'
+import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner, CancelThaw, CancelThawSigner, UnassignedDeposit, DepositAssigned} from '../types/Escrow/Escrow'
 let ZERO_BI = BigInt.fromI32(0)
 let ZERO_AD = '0x0000000000000000000000000000000000000000'
 
@@ -28,6 +29,30 @@ export function handleCancelThaw(event: CancelThaw): void {
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
     escrow.totalAmountThawing = ZERO_BI
     escrow.thawEndTimestamp = ZERO_BI
+    escrow.save()
+}
+
+export function handleUnassignedDeposit(event: UnassignedDeposit): void{
+    let unnasignedTransaction = createOrLoadUnassignedTransaction(event.params.depositor.toHexString(), event.params.sender.toHexString())
+    unnasignedTransaction.type = 'deposit'
+    unnasignedTransaction.amount.plus(event.params.amount)
+    unnasignedTransaction.save()
+}
+
+export function handleDepositAssigned(event: DepositAssigned): void{
+    let transaction = new Transaction(event.transaction.hash.toHexString() + '-' + event.logIndex.toString())
+    let sender = createOrLoadSender(event.params.sender.toHexString())
+    let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
+    let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+
+    transaction.type = "deposit"
+    transaction.sender = sender.id
+    transaction.receiver = receiver.id
+    transaction.amount = event.params.amount
+    transaction.escrowAccount = escrow.id
+    transaction.transactionGroupID = event.transaction.hash.toHexString()
+
+    transaction.save()
     escrow.save()
 }
 
@@ -168,4 +193,16 @@ export function createOrLoadEscrowAccount(sender: string, receiver: string): Esc
         escrowAccount.save()
     }
     return escrowAccount as EscrowAccount
+}
+// ID: would be the depositer
+export function createOrLoadUnassignedTransaction(id: string, sender: string): UnnasignedTransaction{
+    let unassignedTransaction = UnnasignedTransaction.load(id)
+    if(unassignedTransaction == null){
+        unassignedTransaction = new UnnasignedTransaction(id)
+        unassignedTransaction.sender = sender
+        unassignedTransaction.amount = ZERO_BI
+        unassignedTransaction.type = ''
+        unassignedTransaction.save()
+    }
+    return unassignedTransaction as UnnasignedTransaction
 }
