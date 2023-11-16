@@ -33,9 +33,9 @@ export function handleCancelThaw(event: CancelThaw): void {
 }
 
 export function handleUnassignedDeposit(event: UnassignedDeposit): void{
-    let unnasignedTransaction = createOrLoadUnassignedTransaction(event.params.depositor.toHexString(), event.params.sender.toHexString())
+    let unnasignedTransaction = createOrLoadUnassignedTransaction(event.params.sender.toHexString())
     unnasignedTransaction.type = 'deposit'
-    unnasignedTransaction.amount.plus(event.params.amount)
+    unnasignedTransaction.balance.plus(event.params.amount)
     unnasignedTransaction.save()
 }
 
@@ -44,6 +44,7 @@ export function handleDepositAssigned(event: DepositAssigned): void{
     let sender = createOrLoadSender(event.params.sender.toHexString())
     let receiver = createOrLoadReceiver(event.params.receiver.toHexString())
     let escrow = createOrLoadEscrowAccount(event.params.sender.toHexString(), event.params.receiver.toHexString())
+    let unnasignedTransaction = createOrLoadUnassignedTransaction(event.params.sender.toHexString())
 
     transaction.type = "deposit"
     transaction.sender = sender.id
@@ -51,6 +52,8 @@ export function handleDepositAssigned(event: DepositAssigned): void{
     transaction.amount = event.params.amount
     transaction.escrowAccount = escrow.id
     transaction.transactionGroupID = event.transaction.hash.toHexString()
+
+    unnasignedTransaction.balance.minus(event.params.amount)
 
     transaction.save()
     escrow.save()
@@ -195,12 +198,11 @@ export function createOrLoadEscrowAccount(sender: string, receiver: string): Esc
     return escrowAccount as EscrowAccount
 }
 // ID: would be the depositer
-export function createOrLoadUnassignedTransaction(id: string, sender: string): UnnasignedTransaction{
+export function createOrLoadUnassignedTransaction(id: string): UnnasignedTransaction{
     let unassignedTransaction = UnnasignedTransaction.load(id)
     if(unassignedTransaction == null){
         unassignedTransaction = new UnnasignedTransaction(id)
-        unassignedTransaction.sender = sender
-        unassignedTransaction.amount = ZERO_BI
+        unassignedTransaction.balance = ZERO_BI
         unassignedTransaction.type = ''
         unassignedTransaction.save()
     }
