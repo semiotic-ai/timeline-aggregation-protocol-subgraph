@@ -7,12 +7,11 @@ import time
 import backoff
 from eip712.messages import EIP712Message
 from eth_account.messages import encode_defunct
-from web3 import Web3
-from web3.exceptions import ContractCustomError, ContractLogicError
-
 from helpers import (TEST_NET_VARS, add_nonce,
                      check_deployed_subgraph_transaction,
                      check_subgraph_signer, init_nonce)
+from web3 import Web3
+from web3.exceptions import ContractCustomError, ContractLogicError
 
 testnet = sys.argv[1]
 
@@ -153,9 +152,7 @@ def deposit_to_escrow(sender_account, receiver, amount, nonce_data):
     )
 
     # Send ERC20 approval
-    print(
-        "txn hash aprove: ", sign_and_send_tx(sender_account, approve_txn).hex()
-    )
+    print("txn hash aprove: ", sign_and_send_tx(sender_account, approve_txn).hex())
 
     nonce_data = add_nonce(sender_account.address, nonce_data)
     deposit_txn = escrow_contract.functions.deposit(receiver, amount).build_transaction(
