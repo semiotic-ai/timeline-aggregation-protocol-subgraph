@@ -1,27 +1,19 @@
 import json
+import os
 import sys
 import time
-import os
 
 from eip712.messages import EIP712Message
 from eth_account.messages import encode_defunct
+from helpers import (ALLOCATION_ID, ALLOCATIONID_PK, GATEWAY, RECEIVER, SIGNER,
+                     SIGNER_PK, check_subgraph_escrow_account,
+                     check_subgraph_sender, check_subgraph_signer,
+                     check_subgraph_transaction, decode_custom_error,
+                     time_remaining)
 from web3 import Web3
 from web3.exceptions import ContractCustomError, ContractLogicError
 
-from helpers import (
-    ALLOCATION_ID,
-    ALLOCATIONID_PK,
-    GATEWAY,
-    RECEIVER,
-    SIGNER,
-    SIGNER_PK,
-    check_subgraph_escrow_account,
-    check_subgraph_signer,
-    check_subgraph_transaction,
-    decode_custom_error,
-    time_remaining,
-)
-
+ZERO_AD = "0x0000000000000000000000000000000000000000"
 # This script will help test that the subgraph is actually catching the required information
 ESCROW_ADDRESS = sys.argv[1]
 TAP_ADDRESS = sys.argv[2]
@@ -113,10 +105,14 @@ try:
     eth_signed_message = encode_defunct(hexstr=message_hash.hex())
 
     # Sign the message with the private key
-    signature = w3.eth.account.sign_message(eth_signed_message, private_key=ALLOCATIONID_PK)
+    signature = w3.eth.account.sign_message(
+        eth_signed_message, private_key=ALLOCATIONID_PK
+    )
     arbitraryBytes32 = os.urandom(32)
     print("Allocate receiver with allocationid")
-    mockStaking.functions.allocate(arbitraryBytes32, 1000, ALLOCATION_ID, arbitraryBytes32, RECEIVER).transact({"from": RECEIVER})
+    mockStaking.functions.allocate(
+        arbitraryBytes32, 1000, ALLOCATION_ID, arbitraryBytes32, RECEIVER
+    ).transact({"from": RECEIVER})
 except ContractCustomError as e:
     raise ContractCustomError(decode_custom_error(mockStaking_abi_json, str(e), w3))
 except ContractLogicError as e:
@@ -227,6 +223,17 @@ try:
     print("Done revoking")
 
     check_subgraph_signer(SIGNER, False, False)
+
+    txn = escrow.functions.depositUnassigned(GATEWAY, 72).transact({"from": GATEWAY})
+    print(f"Unassigned Deposit txn hash: {txn.hex()}")
+    check_subgraph_sender(GATEWAY, 72)
+
+    print("Running Unnasigned tests")
+    txn = escrow.functions.assignDeposit(RECEIVER, 50).transact({"from": GATEWAY})
+    print(f"Unassigned Deposit txn hash: {txn.hex()}")
+    check_subgraph_sender(GATEWAY, 22)
+    check_subgraph_transaction(txn.hex(), GATEWAY, RECEIVER, "deposit", 50)
+    check_subgraph_escrow_account(GATEWAY, RECEIVER, 0, 72)
 
     print("Transactions ran succesfully")
 except ContractCustomError as e:

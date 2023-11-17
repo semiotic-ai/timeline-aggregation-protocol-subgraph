@@ -132,6 +132,27 @@ def check_subgraph_transaction(
 
 
 @backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)
+def check_subgraph_sender(id, unassignedBalance, endpoint=subgraph_endpoint):
+    graphql_query = """
+        query($id: String!){
+            senders(where: {id: $id}) {
+                unassignedBalance
+            }
+        }
+    """
+    vars = {"id": id.lower()}
+    request_data = {"query": graphql_query, "variables": vars}
+    resp = obtain_subgraph_info_backoff(endpoint, request_data, "senders")
+    print(f" ==== Subgraph response ==== \n {resp.text}")
+
+    data = json.loads(resp.text)["data"]["senders"][0]
+    print(data)
+    balance = str(data["unassignedBalance"])
+    if balance != str(unassignedBalance):
+        raise Exception(f"Subgraph expected info at unassignedBalance incorrect")
+
+
+@backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)
 def check_subgraph_escrow_account(
     sender, receiver, total_amount_thawing, balance, endpoint=subgraph_endpoint
 ):

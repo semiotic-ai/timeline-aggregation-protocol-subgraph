@@ -33,7 +33,7 @@ export function handleCancelThaw(event: CancelThaw): void {
 
 export function handleUnassignedDeposit(event: UnassignedDeposit): void{
     let sender = createOrLoadSender(event.params.sender.toHexString())
-    sender.unassignedBalance.plus(event.params.amount)
+    sender.unassignedBalance = sender.unassignedBalance.plus(event.params.amount)
     sender.save()
 }
 
@@ -50,7 +50,9 @@ export function handleDepositAssigned(event: DepositAssigned): void{
     transaction.escrowAccount = escrow.id
     transaction.transactionGroupID = event.transaction.hash.toHexString()
 
-    sender.unassignedBalance.minus(event.params.amount)
+    sender.unassignedBalance = sender.unassignedBalance.minus(event.params.amount)
+
+    escrow.balance = escrow.balance.plus(event.params.amount)
 
     transaction.save()
     escrow.save()
