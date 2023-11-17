@@ -16,6 +16,7 @@ type Sender @entity {
   escrowAccounts: [EscrowAccount!] @derivedFrom(field: "sender")
   transactions: [Transaction!] @derivedFrom(field: "sender")
   authorizedSigners: [AuthorizedSigner!] @derivedFrom(field: "sender")
+  unassignedBalance: BigInt!
 }
 
 type Receiver @entity {
@@ -37,12 +38,6 @@ type Transaction @entity{
   escrowAccount: EscrowAccount!
 }
 
-type UnnasignedTransaction @entity{
-  id: ID!
-  transactionGroupID: String!
-  type: String!
-  balance: BigInt!
-}
 
 type AuthorizedSigner @entity{
   id: ID!
