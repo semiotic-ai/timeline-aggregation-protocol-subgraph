@@ -4,7 +4,7 @@ repository: https://github.com/semiotic-ai/timeline-aggregation-protocol-contrac
 schema:
   file: ./schema.graphql
 dataSources:
-  - kind: ethereum
+  - kind: ethereum-test
     name: Escrow
     network: mainnet
     source:
