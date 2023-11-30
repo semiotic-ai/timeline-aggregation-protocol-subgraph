@@ -10,13 +10,13 @@ from eth_account.messages import encode_defunct
 from web3 import Web3
 from web3.exceptions import ContractCustomError, ContractLogicError
 
-from helpers import (TEST_NET_VARS, add_nonce,
-                     check_deployed_subgraph_transaction,
-                     check_subgraph_signer, init_nonce)
+from helpers import (TEST_NET_VARS, check_deployed_subgraph_transaction,
+                     check_subgraph_signer, increment_nonce, init_nonce)
 
 testnet = sys.argv[1]
 
-w3 = Web3(Web3.WebsocketProvider(TEST_NET_VARS[testnet]["eth_rpc"]))
+w3 = Web3(Web3.HTTPProvider(TEST_NET_VARS[testnet]["eth_rpc"]))
+# w3 = Web3(Web3.WebsocketProvider(TEST_NET_VARS[testnet]["eth_rpc"]))
 w3.eth.account.enable_unaudited_hdwallet_features()
 
 AMOUNT_TO_REDEEM = 5
@@ -87,6 +87,38 @@ class ReceiptAggregateVoucher(EIP712Message):
     valueAggregate: "uint128"
 
 
+def stake_funds(indexer_account):
+    MIN_STAKE_AMOUNT = int("152d02c7e14af6800000", 16)
+
+    # Prepare the transaction for ERC20 approval
+    approve_txn = erc20_contract.functions.approve(
+        STAKING_ADDRESS, MIN_STAKE_AMOUNT
+    ).build_transaction(
+        {
+            "chainId": CHAIN_ID,
+            "gas": 350000,  # you might want to adjust this value based on the real gas consumption
+            "gasPrice": w3.to_wei("20", "gwei"),
+            "nonce": w3.eth.get_transaction_count(indexer_account.address),
+        }
+    )
+
+    # Send ERC20 approval
+    print("txn hash approve: ", sign_and_send_tx(indexer_account, approve_txn).hex())
+
+    allocate_txn = mock_staking_contract.functions.stake(
+        MIN_STAKE_AMOUNT
+    ).build_transaction(
+        {
+            "chainId": CHAIN_ID,
+            "gas": 350000,  # you might want to adjust this value based on the real gas consumption
+            "gasPrice": w3.to_wei("20", "gwei"),
+            "nonce": w3.eth.get_transaction_count(indexer_account.address),
+        }
+    )
+    # Send stake
+    print("txn hash stake: ", sign_and_send_tx(indexer_account, allocate_txn).hex())
+
+
 def create_allocation(allocation_account, indexer_account, nonce_data):
     # Create a keccak256 hash of the receiver and allocationID
     message_hash = Web3.solidity_keccak(
@@ -100,7 +132,7 @@ def create_allocation(allocation_account, indexer_account, nonce_data):
     signature = allocation_account.sign_message(eth_signed_message)
 
     print("Broadcasting allocation")
-    nonce_data = add_nonce(indexer_account.address, nonce_data)
+    nonce_data = increment_nonce(indexer_account.address, nonce_data)
     # create random bytes32 for metadata and subgraphDeploymentID
     arbitraryBytes32 = os.urandom(32)
     allocate_txn = mock_staking_contract.functions.allocate(
@@ -137,27 +169,24 @@ def sign_and_send_tx(account, transaction):
     return w3.eth.send_raw_transaction(signed_txn.rawTransaction)
 
 
-@backoff.on_exception(backoff.expo, ValueError, max_tries=10)
 def deposit_to_escrow(sender_account, receiver, amount, nonce_data):
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     # Prepare the transaction for ERC20 approval
     approve_txn = erc20_contract.functions.approve(
-        ESCROW_ADDRESS, amount
+        ESCROW_ADDRESS, amount + 10000
     ).build_transaction(
         {
             "chainId": CHAIN_ID,
-            "gas": 550000,  # you might want to adjust this value based on the real gas consumption
+            "gas": 5500000,  # you might want to adjust this value based on the real gas consumption
             "gasPrice": w3.to_wei("20", "gwei"),
             "nonce": nonce_data[sender_account.address],
         }
     )
 
     # Send ERC20 approval
-    print(
-        "txn hash aprove: ", sign_and_send_tx(sender_account, approve_txn).hex()
-    )
+    print("txn hash aprove: ", sign_and_send_tx(sender_account, approve_txn).hex())
 
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     deposit_txn = escrow_contract.functions.deposit(receiver, amount).build_transaction(
         {
             "chainId": CHAIN_ID,
@@ -182,8 +211,7 @@ def deposit_to_escrow(sender_account, receiver, amount, nonce_data):
 
 
 def thaw(sender_account, receiver, amount, nonce_data):
-
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     thaw_txn = escrow_contract.functions.thaw(receiver, amount).build_transaction(
         {
             "chainId": CHAIN_ID,
@@ -199,8 +227,7 @@ def thaw(sender_account, receiver, amount, nonce_data):
 
 @backoff.on_exception(backoff.expo, ValueError, max_tries=10)
 def thaw_signer(sender_account, signer, nonce_data):
-
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     thaw_txn = escrow_contract.functions.thawSigner(signer).build_transaction(
         {
             "chainId": CHAIN_ID,
@@ -224,8 +251,7 @@ def thaw_signer(sender_account, signer, nonce_data):
 
 
 def withdraw(sender_account, receiver, nonce_data):
-
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     withdraw_txn = escrow_contract.functions.withdraw(receiver).build_transaction(
         {
             "chainId": CHAIN_ID,
@@ -261,7 +287,7 @@ def authorize_signer(sender_account, signer, nonce_data, time_delta=86000):
         encode_data, private_key=SIGNER_ACCOUNT.key
     )
 
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     # Prepare the transaction for escrow deposit
     authorize_transaction = escrow_contract.functions.authorizeSigner(
         signer, timestamp, signature_authorization.signature
@@ -299,7 +325,7 @@ def unauthorize_signer(sender_account, signer, nonce_data, time_delta=86000):
         encode_data, private_key=SIGNER_ACCOUNT.key
     )
 
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     authorize_transaction = escrow_contract.functions.revokeAuthorizedSigner(
         signer
     ).build_transaction(
@@ -340,7 +366,7 @@ def redeem_signed_rav(
         allocation_id_digest, private_key=ALLOCATIONID_ACCOUNT.key
     )
 
-    nonce_data = add_nonce(receiver_account.address, nonce_data)
+    nonce_data = increment_nonce(receiver_account.address, nonce_data)
     redeem_transaction = escrow_contract.functions.redeem(
         ((rav.allocationId, rav.timestampNs, rav.valueAggregate), rav_signature),
         signature_proof.signature,
@@ -368,7 +394,7 @@ def redeem_signed_rav(
 
 @backoff.on_exception(backoff.expo, ValueError, max_tries=10)
 def cancel_thaw(sender_account, receiver, nonce_data):
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     thaw_txn = escrow_contract.functions.thaw(receiver, 0).build_transaction(
         {
             "chainId": CHAIN_ID,
@@ -386,7 +412,7 @@ def cancel_thaw(sender_account, receiver, nonce_data):
 
 @backoff.on_exception(backoff.expo, ValueError, max_tries=10)
 def cancel_thaw_signer(sender_account, signer, nonce_data):
-    nonce_data = add_nonce(sender_account.address, nonce_data)
+    nonce_data = increment_nonce(sender_account.address, nonce_data)
     thaw_txn = escrow_contract.functions.cancelThawSigner(signer).build_transaction(
         {
             "chainId": CHAIN_ID,
@@ -416,6 +442,9 @@ nonce_data = init_nonce(
     RECEIVER_ACCOUNT.address,
     w3,
 )
+
+# Only run this next line once
+# stake_funds(INDEXER_ACCOUNT)
 create_allocation(ALLOCATIONID_ACCOUNT, INDEXER_ACCOUNT, nonce_data)
 deposit_to_escrow(GATEWAY_ACCOUNT, INDEXER_ACCOUNT.address, 100, nonce_data)
 authorize_signer(GATEWAY_ACCOUNT, SIGNER_ACCOUNT.address, nonce_data, 86000)

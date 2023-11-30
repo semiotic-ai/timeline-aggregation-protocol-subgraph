@@ -1,26 +1,17 @@
 import json
+import os
 import sys
 import time
-import os
 
 from eip712.messages import EIP712Message
 from eth_account.messages import encode_defunct
 from web3 import Web3
 from web3.exceptions import ContractCustomError, ContractLogicError
 
-from helpers import (
-    ALLOCATION_ID,
-    ALLOCATIONID_PK,
-    GATEWAY,
-    RECEIVER,
-    SIGNER,
-    SIGNER_PK,
-    check_subgraph_escrow_account,
-    check_subgraph_signer,
-    check_subgraph_transaction,
-    decode_custom_error,
-    time_remaining,
-)
+from helpers import (ALLOCATION_ID, ALLOCATIONID_PK, GATEWAY, RECEIVER, SIGNER,
+                     SIGNER_PK, check_subgraph_escrow_account,
+                     check_subgraph_signer, check_subgraph_transaction,
+                     decode_custom_error, time_remaining)
 
 # This script will help test that the subgraph is actually catching the required information
 ESCROW_ADDRESS = sys.argv[1]
@@ -113,10 +104,14 @@ try:
     eth_signed_message = encode_defunct(hexstr=message_hash.hex())
 
     # Sign the message with the private key
-    signature = w3.eth.account.sign_message(eth_signed_message, private_key=ALLOCATIONID_PK)
+    signature = w3.eth.account.sign_message(
+        eth_signed_message, private_key=ALLOCATIONID_PK
+    )
     arbitraryBytes32 = os.urandom(32)
     print("Allocate receiver with allocationid")
-    mockStaking.functions.allocate(arbitraryBytes32, 1000, ALLOCATION_ID, arbitraryBytes32, RECEIVER).transact({"from": RECEIVER})
+    mockStaking.functions.allocate(
+        arbitraryBytes32, 1000, ALLOCATION_ID, arbitraryBytes32, RECEIVER
+    ).transact({"from": RECEIVER})
 except ContractCustomError as e:
     raise ContractCustomError(decode_custom_error(mockStaking_abi_json, str(e), w3))
 except ContractLogicError as e:

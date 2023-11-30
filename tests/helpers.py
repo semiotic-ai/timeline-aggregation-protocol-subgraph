@@ -28,7 +28,7 @@ TEST_NET_VARS = {
         "graphToken": "0x18C924BD5E8b83b47EFaDD632b7178E2Fd36073D",
         "staking": "0xcd549d0C43d915aEB21d3a331dEaB9B7aF186D26",
         "allocationIDTracker": "0x08779382cf862c88228F959b3D9140f35aDc28a4",
-        "eth_rpc": "wss://arbitrum-goerli.publicnode.com",
+        "eth_rpc": "https://arbitrum-goerli.publicnode.com",
         "chainID": 421613,
         "startBlock": 44335434,
         "ravName": "tapVerifier",
@@ -41,9 +41,22 @@ TEST_NET_VARS = {
         "graphToken": "0x5c946740441C12510a167B447B7dE565C20b9E3C",
         "staking": "0x35e3Cb6B317690d662160d5d02A5b364578F62c9",
         "allocationIDTracker": "0xA65C99688a28bf91b59078298A6F5130c8aEf800",
-        "eth_rpc": "wss://ethereum-goerli.publicnode.com",
+        "eth_rpc": "https://ethereum-goerli.publicnode.com",
         "chainID": 5,
         "startBlock": 9765075,
+        "ravName": "TAP",
+        "ravVersion": "1",
+    },
+    "arbitrum-sepolia": {
+        "subgraph-endpoint": "https://api.studio.thegraph.com/query/53925/arb-sepolia-tap-subgraph/version/latest",
+        "escrow": "0x1e4dC4f9F95E102635D8F7ED71c5CdbFa20e2d02",
+        "tapVerifier": "0xfC24cE7a4428A6B89B52645243662A02BA734ECF",
+        "graphToken": "0xf8c05dCF59E8B28BFD5eed176C562bEbcfc7Ac04",
+        "staking": "0x865365C425f3A593Ffe698D9c4E6707D14d51e08",
+        "allocationIDTracker": "0xAaC28a10d707bbc6e02029f1bfDAEB5084b2aD11",
+        "eth_rpc": "https://arbitrum-sepolia.blockpi.network/v1/rpc/public",
+        "chainID": 421614,
+        "startBlock": 2164630,
         "ravName": "TAP",
         "ravVersion": "1",
     },
@@ -86,11 +99,13 @@ def init_nonce(gateway, indexer, signer, receiver, w3):
         signer: w3.eth.get_transaction_count(signer) - 1,
         receiver: w3.eth.get_transaction_count(receiver) - 1,
     }
+    print(f"Starting nonce data: {nonce_data}")
     return nonce_data
 
 
 def increment_nonce(address, nonce_data):
     nonce_data[address] += 1
+    print(f"Nonce data: {nonce_data[address]}")
     return nonce_data
 
 
@@ -164,7 +179,6 @@ def check_subgraph_escrow_account(
 
 
 def error_in_signer_data(signer_data, thawing, authorized):
-
     error = True
     thaw_time_stamp = int(signer_data["thawEndTimestamp"])
 
@@ -201,12 +215,13 @@ def check_subgraph_signer(
         raise Exception("Data in signer doesnt match expected value")
 
 
+@backoff.on_exception(backoff.expo, ValueError, max_tries=MAX_TRIES)
 def check_deployed_subgraph_transaction(
     id, receiver, sender, amount, type, endpoint=subgraph_endpoint
 ):
     graphql_query = """
         query($id: String!, $sender: String!, $receiver: String!, $type: String!){
-            transactions(where: {id: $id, sender: $sender, receiver: $receiver, type: $type}) {
+            transactions(where: {transactionGroupID: $id, sender: $sender, receiver: $receiver, type: $type}) {
                 amount
             }
         }
