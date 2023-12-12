@@ -11,7 +11,9 @@ from web3 import Web3
 from web3.exceptions import ContractCustomError, ContractLogicError
 
 from helpers import (TEST_NET_VARS, check_deployed_subgraph_transaction,
-                     check_subgraph_signer, increment_nonce, init_nonce)
+                     check_subgraph_escrow_account, check_subgraph_signer,
+                     decrement_nonce, get_escrow_balance, increment_nonce,
+                     init_nonce)
 
 testnet = sys.argv[1]
 
@@ -210,7 +212,7 @@ def deposit_to_escrow(sender_account, receiver, amount, nonce_data):
     )
 
 
-def thaw(sender_account, receiver, amount, nonce_data):
+def thaw(sender_account, receiver, amount, nonce_data, balance):
     nonce_data = increment_nonce(sender_account.address, nonce_data)
     thaw_txn = escrow_contract.functions.thaw(receiver, amount).build_transaction(
         {
@@ -223,6 +225,13 @@ def thaw(sender_account, receiver, amount, nonce_data):
 
     # Send escrow thaw
     print("txn hash thaw: ", sign_and_send_tx(sender_account, thaw_txn).hex())
+    check_subgraph_escrow_account(
+        sender=sender_account.address,
+        receiver=receiver,
+        total_amount_thawing=amount,
+        balance=balance,
+        endpoint=SUBGRAPH_ENDPOINT,
+    )
 
 
 @backoff.on_exception(backoff.expo, ValueError, max_tries=10)
@@ -393,7 +402,7 @@ def redeem_signed_rav(
 
 
 @backoff.on_exception(backoff.expo, ValueError, max_tries=10)
-def cancel_thaw(sender_account, receiver, nonce_data):
+def cancel_thaw(sender_account, receiver, nonce_data, balance):
     nonce_data = increment_nonce(sender_account.address, nonce_data)
     thaw_txn = escrow_contract.functions.thaw(receiver, 0).build_transaction(
         {
@@ -408,6 +417,13 @@ def cancel_thaw(sender_account, receiver, nonce_data):
     thaw_txn = sign_and_send_tx(sender_account, thaw_txn).hex()
 
     print("txn hash Cancel thaw: ", thaw_txn)
+    check_subgraph_escrow_account(
+        sender=sender_account.address,
+        receiver=receiver,
+        total_amount_thawing=0,
+        balance=balance,
+        endpoint=SUBGRAPH_ENDPOINT,
+    )
 
 
 @backoff.on_exception(backoff.expo, ValueError, max_tries=10)
@@ -445,10 +461,15 @@ nonce_data = init_nonce(
 
 # Only run this next line once
 # stake_funds(INDEXER_ACCOUNT)
+
 create_allocation(ALLOCATIONID_ACCOUNT, INDEXER_ACCOUNT, nonce_data)
 deposit_to_escrow(GATEWAY_ACCOUNT, INDEXER_ACCOUNT.address, 100, nonce_data)
-authorize_signer(GATEWAY_ACCOUNT, SIGNER_ACCOUNT.address, nonce_data, 86000)
 
+try:
+    authorize_signer(GATEWAY_ACCOUNT, SIGNER_ACCOUNT.address, nonce_data, 86000)
+except ValueError as e:
+    print("Signer already authorized")
+    nonce_data = decrement_nonce(GATEWAY_ACCOUNT.address, nonce_data)
 
 msg = ReceiptAggregateVoucher(
     allocationId=ALLOCATIONID_ACCOUNT.address,
@@ -461,12 +482,17 @@ rav_signature = w3.eth.account.sign_message(
 
 redeem_signed_rav(msg, rav_signature, INDEXER_ACCOUNT, nonce_data)
 
+# Need to obtain current balance to corroborate data
+current_balance = get_escrow_balance(
+    GATEWAY_ACCOUNT.address, INDEXER_ACCOUNT.address, SUBGRAPH_ENDPOINT
+)
+
 print("Thawing escrow account")
-thaw(GATEWAY_ACCOUNT, INDEXER_ACCOUNT.address, 10, nonce_data)
+thaw(GATEWAY_ACCOUNT, INDEXER_ACCOUNT.address, 10, nonce_data, current_balance)
 print("Thawing signer")
 thaw_signer(GATEWAY_ACCOUNT, SIGNER_ACCOUNT.address, nonce_data)
 print("Cancelling escrow account thawing")
-cancel_thaw(GATEWAY_ACCOUNT, INDEXER_ACCOUNT.address, nonce_data)
+cancel_thaw(GATEWAY_ACCOUNT, INDEXER_ACCOUNT.address, nonce_data, current_balance)
 
 print("Canel the Thawing of a signer")
 cancel_thaw_signer(GATEWAY_ACCOUNT, SIGNER_ACCOUNT.address, nonce_data)

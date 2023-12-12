@@ -109,6 +109,12 @@ def increment_nonce(address, nonce_data):
     return nonce_data
 
 
+def decrement_nonce(address, nonce_data):
+    nonce_data[address] -= 1
+    print(f"Nonce data: {nonce_data[address]}")
+    return nonce_data
+
+
 @backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)
 def obtain_subgraph_info_backoff(endpoint, request_data, entity_to_check):
     print(f"Checking subgraph data for {entity_to_check}")
@@ -256,3 +262,22 @@ def verify_data_in_subgraph_response(
             if str(extracted_data_to_check) == str(expected_value):
                 return True, verified_transactions
     return False, verified_transactions
+
+
+@backoff.on_exception(backoff.expo, Exception, max_tries=MAX_TRIES)
+def get_escrow_balance(sender, receiver, endpoint=subgraph_endpoint):
+    graphql_query = """
+        query($id: String!){
+            escrowAccounts(where:{id: $id}){
+                balance
+            }
+        }
+    """
+    vars = {"id": sender.lower() + "-" + receiver.lower()}
+    request_data = {"query": graphql_query, "variables": vars}
+    resp = obtain_subgraph_info_backoff(endpoint, request_data, "escrowAccounts")
+    print(f" ==== Subgraph response ==== \n {resp.text}")
+
+    data = json.loads(resp.text)["data"]["escrowAccounts"]
+    print(data)
+    return data[0]["balance"]
