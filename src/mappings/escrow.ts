@@ -5,7 +5,7 @@ import {
     Sender,
     Receiver,
     EscrowAccount,
-    AuthorizedSigner
+    Signer
 } from '../types/schema'
 import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner, CancelThaw, CancelThawSigner} from '../types/Escrow/Escrow'
 let ZERO_BI = BigInt.fromI32(0)
@@ -94,7 +94,7 @@ export function handleRedeems(event: Redeem): void {
 }
 
 export function handleSignerAuthorization(event: AuthorizeSigner): void {
-    let signer = createOrLoadAuthorizedSigner(event.params.signer.toHexString())
+    let signer = createOrLoadSigner(event.params.signer.toHexString())
     signer.isAuthorized = true
     signer.sender = event.params.sender.toHexString()
     signer.thawEndTimestamp = ZERO_BI
@@ -102,7 +102,7 @@ export function handleSignerAuthorization(event: AuthorizeSigner): void {
 }
 
 export function handleRevokeSignerAuthorization(event: RevokeAuthorizedSigner): void {
-    let signer = createOrLoadAuthorizedSigner(event.params.authorizedSigner.toHexString())
+    let signer = createOrLoadSigner(event.params.authorizedSigner.toHexString())
     signer.isAuthorized = false
     signer.sender = event.params.sender.toHexString()
     signer.thawEndTimestamp = ZERO_BI
@@ -110,7 +110,7 @@ export function handleRevokeSignerAuthorization(event: RevokeAuthorizedSigner): 
 }
 
 export function handleThawSigner(event: CancelThawSigner): void {
-    let signer = createOrLoadAuthorizedSigner(event.params.authorizedSigner.toHexString())
+    let signer = createOrLoadSigner(event.params.authorizedSigner.toHexString())
     signer.sender = event.params.sender.toHexString()
     signer.isAuthorized = true
     signer.thawEndTimestamp = event.params.thawEndTimestamp
@@ -118,7 +118,7 @@ export function handleThawSigner(event: CancelThawSigner): void {
 }
 
 export function handleCancelThawSigner(event: CancelThawSigner): void {
-    let signer = createOrLoadAuthorizedSigner(event.params.authorizedSigner.toHexString())
+    let signer = createOrLoadSigner(event.params.authorizedSigner.toHexString())
     signer.sender = event.params.sender.toHexString()
     signer.isAuthorized = true
     signer.thawEndTimestamp = ZERO_BI
@@ -143,16 +143,16 @@ export function createOrLoadReceiver(id: string): Receiver{
     return receiver as Receiver
 }
 
-export function createOrLoadAuthorizedSigner(id: string): AuthorizedSigner{
-    let authorizedSigner = AuthorizedSigner.load(id)
-    if(authorizedSigner == null){
-        authorizedSigner = new AuthorizedSigner(id)
-        authorizedSigner.isAuthorized = false
-        authorizedSigner.sender = ZERO_AD
-        authorizedSigner.thawEndTimestamp = ZERO_BI
-        authorizedSigner.save()
+export function createOrLoadSigner(id: string): Signer{
+    let signer = Signer.load(id)
+    if(signer == null){
+        signer = new Signer(id)
+        signer.isAuthorized = false
+        signer.sender = ZERO_AD
+        signer.thawEndTimestamp = ZERO_BI
+        signer.save()
     }
-    return authorizedSigner as AuthorizedSigner
+    return signer as Signer
 }
 
 export function createOrLoadEscrowAccount(sender: string, receiver: string): EscrowAccount{
