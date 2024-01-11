@@ -15,7 +15,7 @@ type Sender @entity {
   # Sender Escrow
   escrowAccounts: [EscrowAccount!] @derivedFrom(field: "sender")
   transactions: [Transaction!] @derivedFrom(field: "sender")
-  authorizedSigners: [AuthorizedSigner!] @derivedFrom(field: "sender")
+  signers: [Signer!] @derivedFrom(field: "sender")
 }
 
 type Receiver @entity {
@@ -37,7 +37,7 @@ type Transaction @entity{
   escrowAccount: EscrowAccount!
 }
 
-type AuthorizedSigner @entity{
+type Signer @entity{
   id: ID!
   isAuthorized: Boolean!
   sender: Sender!

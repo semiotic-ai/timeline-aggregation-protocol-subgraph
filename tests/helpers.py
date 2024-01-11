@@ -203,7 +203,7 @@ def check_subgraph_signer(
 ):
     graphql_query = """
         query($authorized_signer: String!){
-            authorizedSigners(where :{id: $authorized_signer}) {
+            signers(where :{id: $authorized_signer}) {
                 isAuthorized
                 thawEndTimestamp
             }
@@ -211,9 +211,9 @@ def check_subgraph_signer(
     """
     vars = {"authorized_signer": signer.lower()}
     request_data = {"query": graphql_query, "variables": vars}
-    resp = obtain_subgraph_info_backoff(endpoint, request_data, "authorizedSigners")
+    resp = obtain_subgraph_info_backoff(endpoint, request_data, "signers")
     print(f" ==== Subgraph response ==== \n {resp.text}")
-    data = json.loads(resp.text)["data"]["authorizedSigners"]
+    data = json.loads(resp.text)["data"]["signers"]
     print(data)
     print("Verifying data has been updated")
     error = error_in_signer_data(data[0], is_thawing, authorized)
