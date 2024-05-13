@@ -166,7 +166,7 @@ def check_subgraph_escrow_account(
             }
         }
     """
-    vars = {"id": sender.lower() + "-" + receiver.lower()}
+    vars = {"id": sender.lower() + receiver.lower().replace('0x','')}
     request_data = {"query": graphql_query, "variables": vars}
     resp = obtain_subgraph_info_backoff(endpoint, request_data, "escrowAccounts")
     print(f" ==== Subgraph response ==== \n {resp.text}")
