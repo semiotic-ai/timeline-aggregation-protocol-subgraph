@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v2
         name: Set up Node.js
         with:
-          node-version: "lts/gallium"
+          node-version: "lts/hydrogen"
       - name: Install graph CLI
         run: npm install -g @graphprotocol/graph-cli
       - uses: actions/setup-python@v4
