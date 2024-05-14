@@ -18,7 +18,6 @@ GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
 
 
 command cd $current_dir/timeline-aggregation-protocol-contracts
-command yarn
 echo "Graph token address: $GRAPH_TOKEN"
 echo "Step 2: Obtain allocation tracker address"
 ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/AllocationIDTracker.sol:AllocationIDTracker --json)

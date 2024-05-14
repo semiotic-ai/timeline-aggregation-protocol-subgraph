@@ -18,8 +18,6 @@ jobs:
         name: Set up Node.js
         with:
           node-version: "lts/gallium"
-      - name: Install graph CLI
-        run: npm install -g @graphprotocol/graph-cli
       - uses: actions/setup-python@v4
         with:
             python-version: '3.8'
