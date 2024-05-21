@@ -6,23 +6,23 @@ type EscrowAccount @entity{
     balance: BigInt!
     totalAmountThawing: BigInt!
     thawEndTimestamp: BigInt!
-    transactions: [Transaction!] @derivedFrom(field: "escrowAccount") 
+    transactions: [Transaction!]! @derivedFrom(field: "escrowAccount") 
 }
 
 type Sender @entity {
   # sender address
   id: Bytes!
   # Sender Escrow
-  escrowAccounts: [EscrowAccount!] @derivedFrom(field: "sender")
-  transactions: [Transaction!] @derivedFrom(field: "sender")
-  signers: [Signer!] @derivedFrom(field: "sender")
+  escrowAccounts: [EscrowAccount!]! @derivedFrom(field: "sender")
+  transactions: [Transaction!]! @derivedFrom(field: "sender")
+  signers: [Signer!]! @derivedFrom(field: "sender")
 }
 
 type Receiver @entity {
   # receiver address
   id: Bytes!
-  escrowAccounts: [EscrowAccount!] @derivedFrom(field: "receiver")
-  transactions: [Transaction!] @derivedFrom(field: "receiver")
+  escrowAccounts: [EscrowAccount!]! @derivedFrom(field: "receiver")
+  transactions: [Transaction!]! @derivedFrom(field: "receiver")
 }
 
 type Transaction @entity(immutable: true){
