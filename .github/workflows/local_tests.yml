@@ -25,7 +25,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
       - name: Start Docker Compose
-        run: docker-compose up -d
+        run: docker compose up -d
         working-directory: ./tests
       - name: Checking graph-node availability
         uses: nick-fields/retry@v2
