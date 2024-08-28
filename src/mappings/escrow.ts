@@ -47,6 +47,7 @@ export function handleDeposit(event: Deposit): void {
     transaction.amount = event.params.amount
     transaction.escrowAccount = escrow.id
     transaction.transactionGroupID = event.transaction.hash
+    transaction.timestamp = event.block.timestamp
 
     transaction.save()
     escrow.save()
@@ -70,6 +71,7 @@ export function handleWidthrawals(event: Withdraw): void {
     transaction.amount = event.params.amount
     transaction.escrowAccount = escrow.id
     transaction.transactionGroupID = event.transaction.hash
+    transaction.timestamp = event.block.timestamp
 
     transaction.save()
     escrow.save()
@@ -93,6 +95,7 @@ export function handleRedeems(event: Redeem): void {
     transaction.allocationID = event.params.allocationID
     transaction.escrowAccount = escrow.id
     transaction.transactionGroupID = event.transaction.hash
+    transaction.timestamp = event.block.timestamp
         
     transaction.save()
     escrow.save()
