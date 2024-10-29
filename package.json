@@ -1,17 +1,22 @@
 {
-  "name": "tap-subgraph",
-  "version": "1.1.0",
+  "name": "timeline-aggregation-protocol-subgraph",
+  "version": "1.0.0",
   "main": "index.js",
-  "license": "Apache-2.0",
+  "repository": "git@github.com:semiotic-ai/timeline-aggregation-protocol-subgraph.git",
+  "author": "Carlos V <carlos.vdr@semiotic.ai>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/tap-v1",
+    "packages/tap-v2"
+  ],
   "scripts": {
-    "codegen": "graph codegen --output-dir src/types/",
-    "build": "graph build",
-    "create-local": "graph create semiotic/tap --node http://127.0.0.1:8020",
-    "deploy-local": "graph deploy semiotic/tap --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020 -l v0"
+    "clean": "yarn workspaces foreach --all --parallel --verbose run clean",
+    "clean:all": "yarn clean && rm -rf node_modules packages/*/node_modules",
+    "build": "yarn workspaces foreach --all --verbose run build"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.54.0",
-    "@graphprotocol/graph-ts": "^0.31.0",
-    "source-map-support": "^0.5.21"
+    "@graphprotocol/graph-cli": "0.87.0",
+    "@graphprotocol/graph-ts": "0.32.0"
   }
 }
