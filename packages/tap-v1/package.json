@@ -10,6 +10,8 @@
     "deploy-local": "graph deploy semiotic/tap --ipfs http://127.0.0.1:5001 --node http://127.0.0.1:8020 -l v0"
   },
   "dependencies": {
-    "source-map-support": "^0.5.21"
+    "source-map-support": "^0.5.21",
+    "@graphprotocol/graph-cli": "^0.54.0",
+    "@graphprotocol/graph-ts": "^0.31.0"
   }
 }

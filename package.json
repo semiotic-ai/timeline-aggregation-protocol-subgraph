@@ -14,9 +14,5 @@
     "clean": "yarn workspaces foreach --all --parallel --verbose run clean",
     "clean:all": "yarn clean && rm -rf node_modules packages/*/node_modules",
     "build": "yarn workspaces foreach --all --verbose run build"
-  },
-  "dependencies": {
-    "@graphprotocol/graph-cli": "0.87.0",
-    "@graphprotocol/graph-ts": "0.32.0"
   }
 }
