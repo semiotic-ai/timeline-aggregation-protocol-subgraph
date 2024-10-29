@@ -1,0 +1,124 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: TapCollector
+    network: arbitrum-sepolia
+    source:
+      address: "0xacC71844EF6beEF70106ABe6E51013189A1f3738"
+      abi: TapCollector
+      startBlock: 82178150
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - EscrowAccount
+        - Sender
+        - Receiver
+        - Collector
+        - Transaction
+        - Signer
+      abis:
+        - name: TapCollector
+          file: ./abis/TapCollector.json
+      eventHandlers:
+        - event: EIP712DomainChanged()
+          handler: handleEIP712DomainChanged
+        - event: GraphDirectoryInitialized(indexed address,indexed address,address,address,indexed
+            address,address,address,address,address,address)
+          handler: handleGraphDirectoryInitialized
+        - event: PaymentCollected(indexed uint8,indexed address,address,uint256,indexed
+            address,uint256)
+          handler: handlePaymentCollected
+        - event: RAVCollected(indexed address,indexed address,indexed
+            address,uint64,uint128,bytes,bytes)
+          handler: handleRAVCollected
+        - event: SignerAuthorized(indexed address,indexed address)
+          handler: handleSignerAuthorized
+        - event: SignerRevoked(indexed address,indexed address)
+          handler: handleSignerRevoked
+        - event: SignerThawCanceled(indexed address,indexed address,uint256)
+          handler: handleSignerThawCanceled
+        - event: SignerThawing(indexed address,indexed address,uint256)
+          handler: handleSignerThawing
+      file: ./src/tap-collector.ts
+  - kind: ethereum
+    name: PaymentsEscrow
+    network: arbitrum-sepolia
+    source:
+      address: "0x09B985a2042848A08bA59060EaF0f07c6F5D4d54"
+      abi: PaymentsEscrow
+      startBlock: 82178135
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - EscrowAccount
+        - Sender
+        - Receiver
+        - Collector
+        - Transaction
+        - Signer
+      abis:
+        - name: PaymentsEscrow
+          file: ./abis/PaymentsEscrow.json
+      eventHandlers:
+        - event: AuthorizedCollector(indexed address,indexed address,uint256,uint256)
+          handler: handleAuthorizedCollector
+        - event: CancelThaw(indexed address,indexed address)
+          handler: handleCancelThaw
+        - event: CancelThawCollector(indexed address,indexed address)
+          handler: handleCancelThawCollector
+        - event: Deposit(indexed address,indexed address,indexed address,uint256)
+          handler: handleDeposit
+        - event: EscrowCollected(indexed address,indexed address,indexed address,uint256)
+          handler: handleEscrowCollected
+        - event: GraphDirectoryInitialized(indexed address,indexed address,address,address,indexed
+            address,address,address,address,address,address)
+          handler: handleGraphDirectoryInitialized
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: RevokeCollector(indexed address,indexed address)
+          handler: handleRevokeCollector
+        - event: Thaw(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleThaw
+        - event: ThawCollector(indexed address,indexed address)
+          handler: handleThawCollector
+        - event: Withdraw(indexed address,indexed address,indexed address,uint256)
+          handler: handleWithdraw
+      file: ./src/payments-escrow.ts
+  - kind: ethereum
+    name: GraphPayments
+    network: arbitrum-sepolia
+    source:
+      address: "0xf5B3661BbB8CD48571C7f41ba2D896a3589C9753"
+      abi: GraphPayments
+      startBlock: 82178135
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - EscrowAccount
+        - Sender
+        - Receiver
+        - Collector
+        - Transaction
+        - Signer
+      abis:
+        - name: GraphPayments
+          file: ./abis/GraphPayments.json
+      eventHandlers:
+        - event: GraphDirectoryInitialized(indexed address,indexed address,address,address,indexed
+            address,address,address,address,address,address)
+          handler: handleGraphDirectoryInitialized
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: PaymentCollected(indexed address,indexed address,indexed address,uint256,uint256,uint256,uint256)
+          handler: handlePaymentCollected
+      file: ./src/payments-escrow.ts
