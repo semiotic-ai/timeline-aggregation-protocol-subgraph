@@ -1,6 +1,0 @@
-[submodule "tests/contracts"]
-	path = tests/contracts
-	url = https://github.com/graphprotocol/contracts.git
-[submodule "tests/timeline-aggregation-protocol-contracts"]
-	path = tests/timeline-aggregation-protocol-contracts
-	url = https://github.com/semiotic-ai/timeline-aggregation-protocol-contracts.git
