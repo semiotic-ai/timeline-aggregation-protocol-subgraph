@@ -17,9 +17,7 @@ jobs:
       - uses: actions/setup-node@v2
         name: Set up Node.js
         with:
-          node-version: "lts/hydrogen"
-      - name: Enable Corepack
-        run: corepack enable
+          node-version: "lts/gallium"
       - uses: actions/setup-python@v4
         with:
             python-version: '3.8'
