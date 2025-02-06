@@ -20,14 +20,15 @@ export function handleThaw(event: Thaw): void {
     escrow.thawEndTimestamp = event.params.thawEndTimestamp
     escrow.sender = sender.id
     escrow.receiver = receiver.id
-    escrow.save()
 
+    escrow.save()
 }
 
 export function handleCancelThaw(event: CancelThaw): void {
     let escrow = createOrLoadEscrowAccount(event.params.sender, event.params.receiver)
     escrow.totalAmountThawing = ZERO_BI
     escrow.thawEndTimestamp = ZERO_BI
+
     escrow.save()
 }
 
@@ -85,11 +86,12 @@ export function handleRedeems(event: Redeem): void {
     let sender = createOrLoadSender(event.params.sender)
     let receiver = createOrLoadReceiver(event.params.receiver)
     let escrow = createOrLoadEscrowAccount(event.params.sender, event.params.receiver)
+
     escrow.balance = escrow.balance.minus(event.params.actualAmount)
+
     transaction.type = "redeem"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
-
     transaction.amount = event.params.actualAmount
     transaction.expectedAmount = event.params.expectedAmount
     transaction.allocationID = event.params.allocationID
@@ -107,6 +109,7 @@ export function handleSignerAuthorization(event: AuthorizeSigner): void {
     signer.isAuthorized = true
     signer.sender = event.params.sender
     signer.thawEndTimestamp = ZERO_BI
+
     signer.save()
 }
 
@@ -115,6 +118,7 @@ export function handleRevokeSignerAuthorization(event: RevokeAuthorizedSigner): 
     signer.isAuthorized = false
     signer.sender = event.params.sender
     signer.thawEndTimestamp = ZERO_BI
+
     signer.save()
 }
 
@@ -123,6 +127,7 @@ export function handleThawSigner(event: CancelThawSigner): void {
     signer.sender = event.params.sender
     signer.isAuthorized = true
     signer.thawEndTimestamp = event.params.thawEndTimestamp
+
     signer.save()
 }
 
@@ -131,6 +136,7 @@ export function handleCancelThawSigner(event: CancelThawSigner): void {
     signer.sender = event.params.sender
     signer.isAuthorized = true
     signer.thawEndTimestamp = ZERO_BI
+
     signer.save()
 }
 
