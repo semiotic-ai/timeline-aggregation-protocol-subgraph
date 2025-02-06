@@ -6,8 +6,8 @@ import {
     Receiver,
     EscrowAccount,
     Signer
-} from '../types/schema'
-import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner, CancelThaw, CancelThawSigner} from '../types/Escrow/Escrow'
+} from '../../generated/schema'
+import { Deposit, Withdraw, Redeem, Thaw, AuthorizeSigner, RevokeAuthorizedSigner, CancelThaw, CancelThawSigner } from '../../generated/Escrow/Escrow'
 let ZERO_BI = BigInt.fromI32(0)
 let ZERO_AD = Bytes.fromHexString('0x0000000000000000000000000000000000000000')
 
@@ -21,7 +21,7 @@ export function handleThaw(event: Thaw): void {
     escrow.sender = sender.id
     escrow.receiver = receiver.id
     escrow.save()
-    
+
 }
 
 export function handleCancelThaw(event: CancelThaw): void {
@@ -64,7 +64,7 @@ export function handleWidthrawals(event: Withdraw): void {
     escrow.balance = escrow.balance.minus(event.params.amount)
     escrow.totalAmountThawing = ZERO_BI
     escrow.thawEndTimestamp = ZERO_BI
-    
+
     transaction.type = "withdraw"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
@@ -75,7 +75,7 @@ export function handleWidthrawals(event: Withdraw): void {
 
     transaction.save()
     escrow.save()
-    
+
 }
 
 export function handleRedeems(event: Redeem): void {
@@ -89,17 +89,17 @@ export function handleRedeems(event: Redeem): void {
     transaction.type = "redeem"
     transaction.sender = sender.id
     transaction.receiver = receiver.id
-  
+
     transaction.amount = event.params.actualAmount
     transaction.expectedAmount = event.params.expectedAmount
     transaction.allocationID = event.params.allocationID
     transaction.escrowAccount = escrow.id
     transaction.transactionGroupID = event.transaction.hash
     transaction.timestamp = event.block.timestamp
-        
+
     transaction.save()
     escrow.save()
-    
+
 }
 
 export function handleSignerAuthorization(event: AuthorizeSigner): void {
@@ -134,27 +134,27 @@ export function handleCancelThawSigner(event: CancelThawSigner): void {
     signer.save()
 }
 
-export function createOrLoadSender(id: Bytes): Sender{
+export function createOrLoadSender(id: Bytes): Sender {
     let sender = Sender.load(id)
-    if(sender == null){
+    if (sender == null) {
         sender = new Sender(id)
         sender.save()
     }
     return sender as Sender
 }
 
-export function createOrLoadReceiver(id: Bytes): Receiver{
+export function createOrLoadReceiver(id: Bytes): Receiver {
     let receiver = Receiver.load(id)
-    if(receiver == null){
+    if (receiver == null) {
         receiver = new Receiver(id)
         receiver.save()
     }
     return receiver as Receiver
 }
 
-export function createOrLoadSigner(id: Bytes): Signer{
+export function createOrLoadSigner(id: Bytes): Signer {
     let signer = Signer.load(id)
-    if(signer == null){
+    if (signer == null) {
         signer = new Signer(id)
         signer.isAuthorized = false
         signer.sender = ZERO_AD
@@ -164,10 +164,10 @@ export function createOrLoadSigner(id: Bytes): Signer{
     return signer as Signer
 }
 
-export function createOrLoadEscrowAccount(sender: Bytes, receiver: Bytes): EscrowAccount{
+export function createOrLoadEscrowAccount(sender: Bytes, receiver: Bytes): EscrowAccount {
     let sender_receiver = sender.concat(receiver)
     let escrowAccount = EscrowAccount.load(sender_receiver)
-    if(escrowAccount == null){
+    if (escrowAccount == null) {
         escrowAccount = new EscrowAccount(sender_receiver)
         escrowAccount.balance = ZERO_BI
         escrowAccount.thawEndTimestamp = ZERO_BI

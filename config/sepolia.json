@@ -1,0 +1,19 @@
+{
+    "network": "sepolia",
+    "TapCollector": {
+        "address": "0xfd24C169Cb89c448aaeB570507aAF77ff9277E4f",
+        "startBlock": 6722929
+    },
+    "PaymentsEscrow": {
+        "address": "0x834f7Fd38818dF6d79265e0BBb56A06168356231",
+        "startBlock": 6722929
+    },
+    "GraphPayments": {
+        "address": "0x0E0e9AC171562b6d6141f69075DEd1E3922930B7",
+        "starBlock": 6722929
+    },
+    "Escrow": {
+        "address": "0x0E0e9AC171562b6d6141f69075DEd1E3922930B7",
+        "starBlock": 6722929
+    }
+}

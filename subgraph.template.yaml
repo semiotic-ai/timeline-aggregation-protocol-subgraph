@@ -8,11 +8,11 @@ dataSources:
   # Tap V1 will be eventually deprecated
   - kind: ethereum
     name: Escrow
-    network: 'sepolia'
+    network: '{{network}}'
     source:
-      address: '0x0E0e9AC171562b6d6141f69075DEd1E3922930B7'
+      address: '{{Escrow.address}}'
       abi: Escrow
-      startBlock: 
+      startBlock: {{Escrow.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -45,11 +45,11 @@ dataSources:
   ## End Tap V1
   - kind: ethereum
     name: TapCollector
-    network: 'sepolia'
+    network: '{{network}}'
     source:
-      address: '0xfd24C169Cb89c448aaeB570507aAF77ff9277E4f'
+      address: '{{TapCollector.address}}'
       abi: TapCollector
-      startBlock: 6722929
+      startBlock: {{TapCollector.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -81,11 +81,11 @@ dataSources:
       file: ./src/v2/tap-collector.ts
   - kind: ethereum
     name: PaymentsEscrow
-    network: 'sepolia'
+    network: '{{network}}'
     source:
-      address: '0x834f7Fd38818dF6d79265e0BBb56A06168356231'
+      address: '{{PaymentsEscrow.address}}'
       abi: PaymentsEscrow
-      startBlock: 6722929
+      startBlock: {{PaymentsEscrow.startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
