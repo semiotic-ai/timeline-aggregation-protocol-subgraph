@@ -39,7 +39,6 @@ jobs:
         working-directory: ./tests/v1
       - run: |
           corepack enable
-          rm -rf node_modules yarn.lock .yarn/cache .yarn/unplugged
           yarn set version 3.2.0
           yarn install --immutable
           ./contract_init.sh
