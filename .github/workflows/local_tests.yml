@@ -39,7 +39,6 @@ jobs:
         working-directory: ./tests/v1
       - run: |
           corepack enable
-          yarn set version 3.2.0
           yarn install
           ./contract_init.sh
         name: Build and Test
