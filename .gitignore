@@ -19,7 +19,7 @@ node_modules
 
 # Lock files
 package-lock.json
-yarn.lock
+
 
 #tests
 tests/data/ipfs/
