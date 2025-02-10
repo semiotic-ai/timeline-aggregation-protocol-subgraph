@@ -12,7 +12,7 @@ const ZERO_BI = BigInt.fromI32(0)
 const ZERO_AD = Address.zero()
 
 
-export const TAP_COLLECTOR = Address.fromString("undefined");
+export const GRAPH_TALLY_COLLECTOR = Address.fromString("undefined");
 
 export function createOrLoadPayer(id: Bytes): Payer {
     let payer = Payer.load(id)
@@ -36,8 +36,8 @@ export function createOrLoadCollector(id: Bytes): Collector {
     let collector = Collector.load(id)
     if (collector == null) {
         collector = new Collector(id)
-        if (id == TAP_COLLECTOR) {
-            collector.type = "TAP"
+        if (id == GRAPH_TALLY_COLLECTOR) {
+            collector.type = "GRAPH_TALLY"
         } else {
             collector.type = "unknown"
         }

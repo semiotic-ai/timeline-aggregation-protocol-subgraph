@@ -1,5 +1,5 @@
 specVersion: 0.0.4
-description: TAP Protocol allows senders to deposit escrow for specific recievers
+description: GraphTally Protocol allows senders to deposit escrow for specific recievers
 repository: https://github.com/semiotic-ai/timeline-aggregation-protocol-contracts
 schema:
   file: ./schema.graphql
@@ -8,14 +8,14 @@ dataSources:
   # Tap V1 will be eventually deprecated
   - kind: ethereum
     name: Escrow
-    network: 'sepolia'
+    network: mainnet
     source:
       address: '0x0E0e9AC171562b6d6141f69075DEd1E3922930B7'
       abi: Escrow
-      startBlock: 
+      startBlock: 6722929
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/v1/escrow.ts
       entities:
@@ -45,7 +45,7 @@ dataSources:
   ## End Tap V1
   - kind: ethereum
     name: TapCollector
-    network: 'sepolia'
+    network: mainnet
     source:
       address: '0xfd24C169Cb89c448aaeB570507aAF77ff9277E4f'
       abi: TapCollector
@@ -81,7 +81,7 @@ dataSources:
       file: ./src/v2/tap-collector.ts
   - kind: ethereum
     name: PaymentsEscrow
-    network: 'sepolia'
+    network: mainnet
     source:
       address: '0x834f7Fd38818dF6d79265e0BBb56A06168356231'
       abi: PaymentsEscrow

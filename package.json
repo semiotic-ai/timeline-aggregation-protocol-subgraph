@@ -1,5 +1,5 @@
 {
-  "name": "tap-subgraph",
+  "name": "graph-tally-subgraph",
   "version": "1.2.0",
   "license": "Apache-2.0",
   "engines": {
@@ -8,12 +8,13 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "node replace-env.js && graph build",
-    "prepare:sepolia": "mustache config/sepolia.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:arbitrum": "mustache config/arbitrum.json subgraph.template.yaml > subgraph.yaml",
     "prepare:arb-sepolia": "mustache config/arb-sepolia.json subgraph.template.yaml > subgraph.yaml",
-    "deploy": "node replace-env && graph deploy --node https://api.studio.thegraph.com/deploy/ tap-v2",
-    "create-local": "graph create --node http://localhost:8020/ tap-v2",
-    "remove-local": "graph remove --node http://localhost:8020/ tap-v2",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 tap-v2",
+    "prepare:custom": "mustache $1 subgraph.template.yaml > subgraph.yaml",
+    "deploy": "node replace-env && graph deploy --node https://api.studio.thegraph.com/deploy/ graph-tally",
+    "create-local": "graph create semiotic/tap --node http://localhost:8020/",
+    "remove-local": "graph remove semiotic/tap --node http://localhost:8020",
+    "deploy-local": "graph deploy semiotic/tap --node http://localhost:8020/ --ipfs http://localhost:5001 -l v0",
     "test": "graph test"
   },
   "dependencies": {

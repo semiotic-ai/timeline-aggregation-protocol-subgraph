@@ -1,5 +1,5 @@
 {
-    "network": "sepolia",
+    "network": "arbitrum",
     "TapCollector": {
         "address": "0xfd24C169Cb89c448aaeB570507aAF77ff9277E4f",
         "startBlock": 6722929
@@ -10,10 +10,10 @@
     },
     "GraphPayments": {
         "address": "0x0E0e9AC171562b6d6141f69075DEd1E3922930B7",
-        "starBlock": 6722929
+        "startBlock": 6722929
     },
     "Escrow": {
-        "address": "0x0E0e9AC171562b6d6141f69075DEd1E3922930B7",
-        "starBlock": 6722929
+        "address": "0x8f477709eF277d4A880801D01A140a9CF88bA0d3",
+        "startBlock": 159124377
     }
 }

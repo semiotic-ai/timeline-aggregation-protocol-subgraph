@@ -7,15 +7,15 @@ import {
 } from "../../generated/PaymentsEscrow/PaymentsEscrow";
 /* eslint-disable prefer-const */
 import { BigInt, Address } from '@graphprotocol/graph-ts';
-import { createOrLoadCollector, createOrLoadEscrowAccount, createOrLoadPayer, createOrLoadReceiver, TAP_COLLECTOR } from "./tap-utils"
+import { createOrLoadCollector, createOrLoadEscrowAccount, createOrLoadPayer, createOrLoadReceiver, GRAPH_TALLY_COLLECTOR } from "./graph-tally-utils"
 
 const ZERO_BI = BigInt.fromI32(0)
 
-// This will run at the begining of the contract so TAP collector is created
+// This will run at the begining of the contract so GRAPH TALLY collector is created
 // yes this is redundant but its a needed thing for indexer-rs to
 // to be able to grab the address from the subgraph from the start
 export function handleInitialized(event: Initialized): void {
-    createOrLoadCollector(TAP_COLLECTOR)
+    createOrLoadCollector(GRAPH_TALLY_COLLECTOR)
 }
 
 export function handleThaw(event: Thaw): void {
@@ -35,7 +35,7 @@ export function handleThaw(event: Thaw): void {
 
 export function handleCancelThaw(event: CancelThaw): void {
     // TODO: receive actual address
-    let escrow = createOrLoadEscrowAccount(event.params.payer, TAP_COLLECTOR, event.params.receiver)
+    let escrow = createOrLoadEscrowAccount(event.params.payer, GRAPH_TALLY_COLLECTOR, event.params.receiver)
     escrow.totalAmountThawing = ZERO_BI
     escrow.thawEndTimestamp = ZERO_BI
     escrow.save()

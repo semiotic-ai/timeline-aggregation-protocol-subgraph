@@ -8,10 +8,10 @@ import {
 } from "../../generated/TapCollector/TapCollector"
 /* eslint-disable prefer-const */
 import { BigInt, Address } from '@graphprotocol/graph-ts'
-import { createOrLoadEscrowAccount, createOrLoadPayer, createOrLoadReceiver, createOrLoadSigner, createOrLoadDataService, createOrLoadLatestRav } from "./tap-utils"
+import { createOrLoadEscrowAccount, createOrLoadPayer, createOrLoadReceiver, createOrLoadSigner, createOrLoadDataService, createOrLoadLatestRav } from "./graph-tally-utils"
 let ZERO_BI = BigInt.fromI32(0)
 
-const TAP_COLLECTOR = Address.fromString("0x00000000000000000000000000")
+const GRAPH_TALLY_COLLECTOR = Address.fromString("0x00000000000000000000000000")
 export function handleSignerAuthorized(event: SignerAuthorized): void {
     let signer = createOrLoadSigner(event.params.authorizedSigner)
     signer.isAuthorized = true
@@ -47,7 +47,7 @@ export function handleSignerThawCanceled(event: SignerThawing): void {
 export function handlePaymentCollected(event: PaymentCollected): void {
     createOrLoadPayer(event.params.payer)
     createOrLoadReceiver(event.params.receiver)
-    let escrow = createOrLoadEscrowAccount(event.params.payer, TAP_COLLECTOR, event.params.receiver)
+    let escrow = createOrLoadEscrowAccount(event.params.payer, GRAPH_TALLY_COLLECTOR, event.params.receiver)
     let total_tokens_collected = escrow.balance.minus(event.params.tokensDataService).minus(event.params.tokensReceiver)
     escrow.balance = total_tokens_collected
     escrow.save()

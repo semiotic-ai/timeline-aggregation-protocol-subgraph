@@ -1,4 +1,5 @@
 # Timeline Aggregation Protocol Subgraph (TAP Subgraph) 
+## to be renamed GraphTally
 
 
 ## Build and deploy
