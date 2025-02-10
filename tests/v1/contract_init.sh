@@ -42,7 +42,7 @@ echo "Escrow address: $ESCROW_AD"
 cd $current_dir
 
 echo "Deploying locally the subgraph"
-yq ".dataSources[].source.address=\"$ESCROW_AD\"" ../subgraph.yaml -i
+yq ".dataSources[].source.address=\"$ESCROW_AD\"" ../../subgraph.yaml -i
 yarn codegen
 yarn build
 yarn create-local

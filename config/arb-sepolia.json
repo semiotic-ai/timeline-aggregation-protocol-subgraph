@@ -1,0 +1,19 @@
+{
+    "network": "arbitrum-sepolia",
+    "TapCollector": {
+        "address": "0xacC71844EF6beEF70106ABe6E51013189A1f3738",
+        "startBlock": 82178150
+    },
+    "PaymentsEscrow": {
+        "address": "0x09B985a2042848A08bA59060EaF0f07c6F5D4d54",
+        "startBlock": 82178135
+    },
+    "GraphPayments": {
+        "address": "0xf5B3661BbB8CD48571C7f41ba2D896a3589C9753",
+        "startBlock": 82178104
+    },
+    "Escrow": {
+        "address": "0x1e4dC4f9F95E102635D8F7ED71c5CdbFa20e2d02",
+        "startBlock": 2164630
+    }
+}

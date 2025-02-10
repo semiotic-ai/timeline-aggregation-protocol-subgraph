@@ -1,3 +1,5 @@
+## Start TAP v1
+### Tap V1 will be entually deprecated and removed
 type EscrowAccount @entity{
     # Thaw transaction hash is used as ID
     id: Bytes!
@@ -44,3 +46,71 @@ type Signer @entity{
   sender: Sender!
   thawEndTimestamp: BigInt!
 }
+
+
+## End Tapv1
+
+
+
+## Start GraphTallyv2
+## When tapv1 is deprecated remove v2 label from EscrowAccount and Receiver entity name
+
+type EscrowAccountV2 @entity{
+    # Thaw transaction hash is used as ID
+    id: Bytes!
+    payer: Payer!
+    collector: Collector!
+    receiver: ReceiverV2!
+    balance: BigInt!
+    totalAmountThawing: BigInt!
+    thawEndTimestamp: BigInt!
+}
+
+type Collector @entity{
+  id: Bytes!
+  type: String
+  escrowAccounts: [EscrowAccountV2!]! @derivedFrom(field: "collector")
+}
+
+# Will contain only the latest rav
+type LatestRav @entity{
+    id: Bytes!
+    payer: Payer!
+    dataService: DataService!
+    serviceProvider: ReceiverV2!
+    valueAggregate: BigInt!
+    timestamp: BigInt!
+    metadata: Bytes!
+    signature:Bytes!
+}
+
+type DataService @entity{
+  id: Bytes!
+  latestRav: [LatestRav!]! @derivedFrom(field: "dataService")
+}
+
+# Represents the gateway
+type Payer @entity {
+  # payer address
+  id: Bytes!
+  # Payer Escrow
+  escrowAccounts: [EscrowAccountV2!]! @derivedFrom(field: "payer")
+  signers: [SignerV2!]! @derivedFrom(field: "payer")
+}
+
+# Represents the indexer
+type ReceiverV2 @entity {
+  # receiver address
+  id: Bytes!
+  escrowAccounts: [EscrowAccountV2!]! @derivedFrom(field: "receiver")
+}
+
+type SignerV2 @entity{
+  id: Bytes!
+  isAuthorized: Boolean!
+  payer: Payer!
+  thawEndTimestamp: BigInt!
+}
+
+
+## end GraphTallyv2

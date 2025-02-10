@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v2
         name: Set up Node.js
         with:
-          node-version: "lts/gallium"
+          node-version: "lts/hydrogen"
       - uses: actions/setup-python@v4
         with:
             python-version: '3.8'
@@ -26,7 +26,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
       - name: Start Docker Compose
         run: docker compose up -d
-        working-directory: ./tests
+        working-directory: ./tests/v1
       - name: Checking graph-node availability
         uses: nick-fields/retry@v2
         with:
@@ -36,9 +36,10 @@ jobs:
           command: nc -zv 127.0.0.1 8030
       - name: Installing python requirements
         run: pip install -r requirements.txt
-        working-directory: ./tests
+        working-directory: ./tests/v1
       - run: |
-          yarn
+          corepack enable
+          yarn install
           ./contract_init.sh
         name: Build and Test
-        working-directory: ./tests
+        working-directory: ./tests/v1
