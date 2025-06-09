@@ -14,10 +14,12 @@ jobs:
         name: Check out repository
         with:
           submodules: recursive
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         name: Set up Node.js
         with:
-          node-version: "lts/gallium"
+          node-version: "lts/*"
+      - name: Enable Corepack
+        run: corepack enable
       - uses: actions/setup-python@v4
         with:
             python-version: '3.8'
