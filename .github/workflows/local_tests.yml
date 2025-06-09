@@ -40,6 +40,10 @@ jobs:
       - name: Installing python requirements
         run: pip install -r requirements.txt
         working-directory: ./tests
+      - name: Install system dependencies & enable Corepack
+        run: |
+          sudo apt-get update && sudo apt-get install -y libudev-dev
+          corepack enable
       - run: |
           yarn
           ./contract_init.sh

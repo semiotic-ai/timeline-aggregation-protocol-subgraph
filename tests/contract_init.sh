@@ -10,11 +10,11 @@ current_dir=$(pwd)
 
 echo "Step 1: Run graph contracts"
 cd $current_dir/contracts
-yarn
+pnpm install --frozen-lockfile
 echo "Running node contract deploy"
-FULL_CMD_LOG="$(yes | yarn deploy-localhost --auto-mine)"
+FULL_CMD_LOG="$(yes | pnpm --filter @graphprotocol/contracts run deploy-localhost)"
 echo "Obtaining Graph address token"
-GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
+GRAPH_TOKEN=$(jq '."1337".GraphToken.address' packages/contracts/addresses.json -r)
 
 
 command cd $current_dir/timeline-aggregation-protocol-contracts
