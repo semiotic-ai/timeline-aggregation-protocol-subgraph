@@ -12,7 +12,7 @@ echo "Step 1: Run graph contracts"
 cd $current_dir/contracts
 pnpm install --frozen-lockfile
 echo "Running node contract deploy"
-FULL_CMD_LOG="$(yes | pnpm --filter @graphprotocol/contracts run deploy-localhost)"
+FULL_CMD_LOG="$(pnpm run graph-local -- --auto-mine)"
 echo "Obtaining Graph address token"
 GRAPH_TOKEN=$(jq '."1337".GraphToken.address' packages/contracts/addresses.json -r)
 
@@ -42,7 +42,7 @@ echo "Escrow address: $ESCROW_AD"
 cd $current_dir
 
 echo "Deploying locally the subgraph"
-yq ".dataSources[].source.address=\"$ESCROW_AD\"" ../subgraph.yaml -i
+yq e ".dataSources[].source.address=\"$ESCROW_AD\"" ../subgraph.yaml -i
 yarn codegen
 yarn build
 yarn create-local
