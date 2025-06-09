@@ -4,41 +4,108 @@ on:
     branches: [ main ]
   pull_request:
 jobs:
-    tests:
-      strategy:
-          fail-fast: true
-      runs-on: ubuntu-latest
-      name: Build and Test
-      steps:
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+    defaults:
+      run:
+        working-directory: ./tests
+    steps:
       - uses: actions/checkout@v4
         name: Check out repository
         with:
           submodules: recursive
-      - uses: actions/setup-node@v2
-        name: Set up Node.js
-        with:
-          node-version: "lts/gallium"
-      - uses: actions/setup-python@v4
-        with:
-            python-version: '3.8'
-            cache: pip
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-      - name: Start Docker Compose
+        with:
+          version: nightly
+
+      - name: Set up Node.js and cache Yarn dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: |
+            **/yarn.lock
+            tests/yarn.lock
+
+      - name: Set up Python and cache Pip dependencies
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          cache: 'pip'
+          cache-dependency-path: 'tests/requirements.txt'
+
+      - name: Install test-level Yarn dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Start local chain and services
         run: docker compose up -d
-        working-directory: ./tests
-      - name: Checking graph-node availability
+
+      - name: Wait for graph-node
         uses: nick-fields/retry@v2
         with:
           max_attempts: 3
           retry_on: error
           timeout_seconds: 5
           command: nc -zv 127.0.0.1 8030
-      - name: Installing python requirements
+
+      - name: Deploy dependent Graph contracts
+        id: deploy-graph-contracts
+        run: |
+          cd contracts
+          yarn install --frozen-lockfile
+          echo "Deploying graph-contracts..."
+          yes | yarn deploy-localhost --auto-mine
+          GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
+          echo "GRAPH_TOKEN=$GRAPH_TOKEN" >> $GITHUB_ENV
+          echo "Deployed GraphToken at: $GRAPH_TOKEN"
+
+      - name: Deploy protocol contracts
+        id: deploy-protocol-contracts
+        env:
+          GATEWAY: '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+          GRAPH_TOKEN: ${{ env.GRAPH_TOKEN }}
+        run: |
+          cd timeline-aggregation-protocol-contracts
+          
+          echo "Deploying AllocationIDTracker..."
+          ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url http://localhost:8545 src/AllocationIDTracker.sol:AllocationIDTracker --json)
+          ALLOCATION_TRACKER_AD=$(echo $ALLOCATION_VAR | jq -r '.deployedTo')
+          echo "ALLOCATION_TRACKER_AD=$ALLOCATION_TRACKER_AD" >> $GITHUB_ENV
+          echo "Deployed AllocationIDTracker at: $ALLOCATION_TRACKER_AD"
+
+          echo "Deploying MockStaking..."
+          ISTAKING_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url http://localhost:8545 test/MockStaking.sol:MockStaking --constructor-args $GRAPH_TOKEN --json)
+          ISTAKING_AD=$(echo $ISTAKING_VAR | jq -r '.deployedTo')
+          echo "ISTAKING_AD=$ISTAKING_AD" >> $GITHUB_ENV
+          echo "Deployed MockStaking at: $ISTAKING_AD"
+
+          echo "Deploying TAPVerifier..."
+          TAP_VERIFIER_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url http://localhost:8545 src/TAPVerifier.sol:TAPVerifier --constructor-args 'tapVerifier' '1.0' --json)
+          TAP_VERIFIER_AD=$(echo $TAP_VERIFIER_VAR | jq -r '.deployedTo')
+          echo "TAP_VERIFIER_AD=$TAP_VERIFIER_AD" >> $GITHUB_ENV
+          echo "Deployed TAPVerifier at: $TAP_VERIFIER_AD"
+
+          echo "Deploying Escrow..."
+          ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url http://localhost:8545 src/Escrow.sol:Escrow --constructor-args $GRAPH_TOKEN $ISTAKING_AD $TAP_VERIFIER_AD $ALLOCATION_TRACKER_AD 10 15 --json)
+          ESCROW_AD=$(echo $ESCROW_VAR | jq -r '.deployedTo')
+          echo "ESCROW_AD=$ESCROW_AD" >> $GITHUB_ENV
+          echo "Deployed Escrow at: $ESCROW_AD"
+
+      - name: Build and deploy subgraph
+        run: |
+          echo "Updating subgraph manifest with Escrow address: ${{ env.ESCROW_AD }}"
+          yq e ".dataSources[].source.address=\"${{ env.ESCROW_AD }}\"" -i ../subgraph.yaml
+          yarn codegen
+          yarn build
+          yarn create-local
+          yarn deploy-local
+
+      - name: Install Python test dependencies
         run: pip install -r requirements.txt
-        working-directory: ./tests
-      - run: |
-          yarn
-          ./contract_init.sh
-        name: Build and Test
-        working-directory: ./tests
+      
+      - name: Run contract integration tests
+        run: |
+          python local_contract_calls.py "${{ env.ESCROW_AD }}" "${{ env.TAP_VERIFIER_AD }}" "${{ env.GRAPH_TOKEN }}" "${{ env.ISTAKING_AD }}"

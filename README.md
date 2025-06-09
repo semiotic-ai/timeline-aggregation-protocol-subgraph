@@ -39,7 +39,7 @@ Inside /test are the tools to help you test locally this subgraph
 Requirements are:
 
 - jq
-- yq
+- yq (GitHub runners come with yq pre-installed. There’s no need to install it, or use a third-party action.)
 - Node (personally I use 16.14.2)
 
 ### Run podman-compose up/ docker-compose up

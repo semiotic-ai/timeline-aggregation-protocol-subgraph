@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# This script was used in our GitHub Actions workflow to deploy the contracts locally.
+# It's not used anymore, but it's kept here for reference.
+
 set -e
 
 GATEWAY=0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1
