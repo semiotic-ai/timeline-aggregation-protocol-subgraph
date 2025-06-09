@@ -12,7 +12,7 @@ echo "Step 1: Run graph contracts"
 cd $current_dir/contracts
 pnpm install --frozen-lockfile
 echo "Running node contract deploy"
-FULL_CMD_LOG="$(pnpm run graph-local -- --auto-mine)"
+FULL_CMD_LOG="$(yes | yarn deploy-localhost --auto-mine)"
 echo "Obtaining Graph address token"
 GRAPH_TOKEN=$(jq '."1337".GraphToken.address' packages/contracts/addresses.json -r)
 
