@@ -14,21 +14,24 @@ jobs:
         name: Check out repository
         with:
           submodules: recursive
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
         name: Set up Node.js
         with:
           node-version: "lts/gallium"
-      - uses: actions/setup-python@v4
+          cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
+      - uses: actions/setup-python@v5
         with:
             python-version: '3.8'
-            cache: pip
+            cache: 'pip'
+            cache-dependency-path: 'tests/requirements.txt'
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
       - name: Start Docker Compose
         run: docker compose up -d
         working-directory: ./tests
       - name: Checking graph-node availability
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           max_attempts: 3
           retry_on: error
