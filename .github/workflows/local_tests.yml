@@ -26,9 +26,7 @@ jobs:
         with:
           node-version: 20
           cache: 'yarn'
-          cache-dependency-path: |
-            **/yarn.lock
-            tests/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - name: Set up Python and cache Pip dependencies
         uses: actions/setup-python@v4
@@ -51,14 +49,20 @@ jobs:
           timeout_seconds: 5
           command: nc -zv 127.0.0.1 8030
 
+      - name: Install system dependencies for native modules
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev libusb-1.0-0-dev
+
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Deploy dependent Graph contracts
         id: deploy-graph-contracts
         run: |
           cd contracts
-          yarn install --frozen-lockfile
+          pnpm install --frozen-lockfile
           echo "Deploying graph-contracts..."
-          yes | yarn deploy-localhost --auto-mine
-          GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
+          yes | pnpm run graph-local -- --auto-mine
+          GRAPH_TOKEN=$(jq '."1337".GraphToken.address' packages/contracts/addresses.json -r)
           echo "GRAPH_TOKEN=$GRAPH_TOKEN" >> $GITHUB_ENV
           echo "Deployed GraphToken at: $GRAPH_TOKEN"
 
