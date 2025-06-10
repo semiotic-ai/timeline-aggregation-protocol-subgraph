@@ -10,33 +10,36 @@ current_dir=$(pwd)
 
 echo "Step 1: Run graph contracts"
 cd $current_dir/contracts
-yarn
-echo "Running node contract deploy"
-FULL_CMD_LOG="$(yes | yarn deploy-localhost --auto-mine)"
-echo "Obtaining Graph address token"
-GRAPH_TOKEN=$(jq '."1337".GraphToken.address' addresses.json -r)
+pnpm install
+echo "Building workspace packages"
+pnpm -r --filter="!@graphprotocol/token-distribution" run build
 
-
-command cd $current_dir/timeline-aggregation-protocol-contracts
+cd $current_dir/timeline-aggregation-protocol-contracts
+echo "Step 1.5: Deploy local GraphToken"
+GRAPH_TOKEN_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 --broadcast test/MockERC20Token.sol:MockERC20Token --constructor-args 1000000000000000000000000000 2>&1)
+GRAPH_TOKEN=$(echo "$GRAPH_TOKEN_VAR" | grep "Deployed to:" | awk '{print $3}')
 echo "Graph token address: $GRAPH_TOKEN"
+
 echo "Step 2: Obtain allocation tracker address"
-ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/AllocationIDTracker.sol:AllocationIDTracker --json)
+ALLOCATION_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 --broadcast src/AllocationIDTracker.sol:AllocationIDTracker --json)
 ALLOCATION_TRACKER_AD=$(echo $ALLOCATION_VAR | jq -r '.deployedTo')
 echo "Allocation tracker address: $ALLOCATION_TRACKER_AD"
 
 echo "Step 3: Obtain istaking address"
-ISTAKING_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 test/MockStaking.sol:MockStaking --constructor-args $GRAPH_TOKEN --json)
-ISTAKING_AD=$(echo $ISTAKING_VAR | jq -r '.deployedTo')
+echo "Deploying MockStaking with GRAPH_TOKEN: $GRAPH_TOKEN"
+ISTAKING_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 --broadcast test/MockStaking.sol:MockStaking --constructor-args $GRAPH_TOKEN 2>&1)
+echo "Raw forge output: $ISTAKING_VAR"
+ISTAKING_AD=$(echo "$ISTAKING_VAR" | grep "Deployed to:" | awk '{print $3}')
 echo "Istaking address: $ISTAKING_AD"
 
 echo "Step 4: Obtain TAPVerifier address"
-TAP_VERIFIER_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/TAPVerifier.sol:TAPVerifier --constructor-args 'tapVerifier' '1.0' --json)
-TAP_VERIFIER_AD=$(echo $TAP_VERIFIER_VAR | jq -r '.deployedTo')
+TAP_VERIFIER_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 --broadcast src/TAPVerifier.sol:TAPVerifier --constructor-args 'tapVerifier' '1.0' 2>&1)
+TAP_VERIFIER_AD=$(echo "$TAP_VERIFIER_VAR" | grep "Deployed to:" | awk '{print $3}')
 echo "Tap verifier address: $TAP_VERIFIER_AD"
 
 echo "Step 5: Obtain Escrow address"
-ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 src/Escrow.sol:Escrow --constructor-args $GRAPH_TOKEN $ISTAKING_AD $TAP_VERIFIER_AD $ALLOCATION_TRACKER_AD 10 15 --json)
-ESCROW_AD=$(echo $ESCROW_VAR | jq -r '.deployedTo')
+ESCROW_VAR=$(forge create --unlocked --from $GATEWAY --rpc-url localhost:8545 --broadcast src/Escrow.sol:Escrow --constructor-args $GRAPH_TOKEN $ISTAKING_AD $TAP_VERIFIER_AD $ALLOCATION_TRACKER_AD 10 15 2>&1)
+ESCROW_AD=$(echo "$ESCROW_VAR" | grep "Deployed to:" | awk '{print $3}')
 echo "Escrow address: $ESCROW_AD"
 
 cd $current_dir
