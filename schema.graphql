@@ -32,7 +32,6 @@ type Transaction @entity(immutable: true){
   sender: Sender!
   receiver: Receiver!
   allocationID: Bytes
-  expectedAmount: BigInt
   amount: BigInt!
   escrowAccount: EscrowAccount!
   timestamp: BigInt!
