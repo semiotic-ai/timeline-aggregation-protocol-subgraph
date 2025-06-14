@@ -91,7 +91,6 @@ export function handleRedeems(event: Redeem): void {
     transaction.receiver = receiver.id
   
     transaction.amount = event.params.actualAmount
-    transaction.expectedAmount = event.params.expectedAmount
     transaction.allocationID = event.params.allocationID
     transaction.escrowAccount = escrow.id
     transaction.transactionGroupID = event.transaction.hash
